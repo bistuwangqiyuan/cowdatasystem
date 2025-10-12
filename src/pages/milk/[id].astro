@@ -1,0 +1,162 @@
+---
+/**
+ * 产奶记录详情页面
+ */
+import Layout from '@components/layout/Layout.astro';
+import { getMilkRecordById } from '@/services/milk.service';
+import { MilkingSessionLabels, isAbnormalSomaticCellCount, isMilkQualityGood } from '@/types/milk.types';
+
+const { id } = Astro.params;
+const { data: record, error } = await getMilkRecordById(id!);
+
+if (error || !record) {
+  return Astro.redirect('/milk');
+}
+
+const isSCCAbnormal = isAbnormalSomaticCellCount(record.somatic_cell_count);
+const isQualityGood = isMilkQualityGood(record);
+---
+
+<Layout title="产奶记录详情">
+  <div class="max-w-4xl mx-auto space-y-6">
+    <!-- 头部 -->
+    <div class="flex justify-between items-center">
+      <h1 class="text-2xl md:text-3xl font-bold">产奶记录详情</h1>
+      <div class="flex gap-2">
+        <a
+          href={`/milk/${id}/edit`}
+          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          编辑
+        </a>
+        <a
+          href="/milk"
+          class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+        >
+          返回列表
+        </a>
+      </div>
+    </div>
+
+    <!-- 质量状态 -->
+    {!isQualityGood && (
+      <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+        <div class="flex items-center">
+          <span class="text-yellow-700 font-semibold">⚠️ 质量指标异常</span>
+        </div>
+      </div>
+    )}
+
+    <!-- 基本信息 -->
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-xl font-semibold mb-4">基本信息</h2>
+      <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <dt class="text-sm text-gray-600">挤奶时间</dt>
+          <dd class="mt-1 text-lg font-medium">
+            {new Date(record.recorded_datetime).toLocaleString('zh-CN')}
+          </dd>
+        </div>
+        <div>
+          <dt class="text-sm text-gray-600">挤奶时段</dt>
+          <dd class="mt-1">
+            <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded">
+              {MilkingSessionLabels[record.milking_session]}
+            </span>
+          </dd>
+        </div>
+        <div>
+          <dt class="text-sm text-gray-600">挤奶人员</dt>
+          <dd class="mt-1 text-lg">
+            {record.milker?.full_name || '-'}
+          </dd>
+        </div>
+      </dl>
+    </div>
+
+    <!-- 产奶量 -->
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-xl font-semibold mb-4">产奶量</h2>
+      <div class="text-center py-8">
+        <div class="text-6xl font-bold text-green-600">
+          {record.milk_yield}
+        </div>
+        <div class="text-2xl text-gray-600 mt-2">升 (L)</div>
+      </div>
+    </div>
+
+    <!-- 质量指标 -->
+    {(record.fat_percentage || record.protein_percentage || record.lactose_percentage || record.somatic_cell_count) && (
+      <div class="bg-white p-6 rounded-lg shadow">
+        <h2 class="text-xl font-semibold mb-4">质量指标</h2>
+        <dl class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {record.fat_percentage && (
+            <div>
+              <dt class="text-sm text-gray-600">脂肪率</dt>
+              <dd class={`mt-1 text-2xl font-bold ${
+                record.fat_percentage >= 3.0 && record.fat_percentage <= 5.0
+                  ? 'text-green-600'
+                  : 'text-yellow-600'
+              }`}>
+                {record.fat_percentage}%
+              </dd>
+              <p class="text-xs text-gray-500 mt-1">正常范围: 3.0-5.0%</p>
+            </div>
+          )}
+
+          {record.protein_percentage && (
+            <div>
+              <dt class="text-sm text-gray-600">蛋白质率</dt>
+              <dd class={`mt-1 text-2xl font-bold ${
+                record.protein_percentage >= 2.8 && record.protein_percentage <= 3.8
+                  ? 'text-green-600'
+                  : 'text-yellow-600'
+              }`}>
+                {record.protein_percentage}%
+              </dd>
+              <p class="text-xs text-gray-500 mt-1">正常范围: 2.8-3.8%</p>
+            </div>
+          )}
+
+          {record.lactose_percentage && (
+            <div>
+              <dt class="text-sm text-gray-600">乳糖含量</dt>
+              <dd class={`mt-1 text-2xl font-bold ${
+                record.lactose_percentage >= 4.5 && record.lactose_percentage <= 5.5
+                  ? 'text-green-600'
+                  : 'text-yellow-600'
+              }`}>
+                {record.lactose_percentage}%
+              </dd>
+              <p class="text-xs text-gray-500 mt-1">正常范围: 4.5-5.5%</p>
+            </div>
+          )}
+
+          {record.somatic_cell_count && (
+            <div>
+              <dt class="text-sm text-gray-600">体细胞数</dt>
+              <dd class={`mt-1 text-2xl font-bold ${
+                isSCCAbnormal ? 'text-red-600' : 'text-green-600'
+              }`}>
+                {record.somatic_cell_count}
+              </dd>
+              <p class="text-xs text-gray-500 mt-1">万个/mL (正常: &lt;20)</p>
+              {isSCCAbnormal && (
+                <p class="text-xs text-red-600 mt-1">⚠️ 可能存在乳房炎</p>
+              )}
+            </div>
+          )}
+        </dl>
+      </div>
+    )}
+
+    <!-- 备注 -->
+    {record.notes && (
+      <div class="bg-white p-6 rounded-lg shadow">
+        <h2 class="text-xl font-semibold mb-4">备注</h2>
+        <p>{record.notes}</p>
+      </div>
+    )}
+  </div>
+</Layout>
+

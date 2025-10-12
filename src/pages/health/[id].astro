@@ -1,0 +1,187 @@
+---
+/**
+ * 健康记录详情页面
+ */
+import Layout from '@components/layout/Layout.astro';
+import { getHealthRecordById } from '@/services/health.service';
+import { getTemperatureStatus, isAbnormalHealth } from '@/types/health.types';
+
+const { id } = Astro.params;
+const { data: record, error } = await getHealthRecordById(id!);
+
+if (error || !record) {
+  return Astro.redirect('/health');
+}
+
+const mentalStateLabels: Record<string, string> = {
+  normal: '正常',
+  depressed: '沉郁',
+  excited: '兴奋',
+};
+
+const appetiteLabels: Record<string, string> = {
+  good: '良好',
+  normal: '一般',
+  poor: '较差',
+};
+
+const tempStatus = getTemperatureStatus(record.temperature);
+const isAbnormal = isAbnormalHealth(record);
+---
+
+<Layout title="健康记录详情">
+  <div class="max-w-4xl mx-auto space-y-6">
+    <!-- 头部 -->
+    <div class="flex justify-between items-center">
+      <h1 class="text-2xl md:text-3xl font-bold">健康记录详情</h1>
+      <div class="flex gap-2">
+        <a
+          href={`/health/${id}/edit`}
+          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          编辑
+        </a>
+        <a
+          href="/health"
+          class="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50"
+        >
+          返回列表
+        </a>
+      </div>
+    </div>
+
+    <!-- 状态卡片 -->
+    {isAbnormal && (
+      <div class="bg-red-50 border border-red-200 rounded-lg p-4">
+        <div class="flex items-center">
+          <span class="text-red-600 font-semibold">⚠️ 异常健康状态</span>
+        </div>
+      </div>
+    )}
+
+    <!-- 基本信息 -->
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-xl font-semibold mb-4">基本信息</h2>
+      <dl class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <dt class="text-sm text-gray-600">检查时间</dt>
+          <dd class="mt-1 text-lg font-medium">
+            {new Date(record.check_datetime).toLocaleString('zh-CN')}
+          </dd>
+        </div>
+        <div>
+          <dt class="text-sm text-gray-600">检查人员</dt>
+          <dd class="mt-1 text-lg">
+            {record.examiner?.full_name || '-'}
+          </dd>
+        </div>
+      </dl>
+    </div>
+
+    <!-- 生理指标 -->
+    <div class="bg-white p-6 rounded-lg shadow">
+      <h2 class="text-xl font-semibold mb-4">生理指标</h2>
+      <dl class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div>
+          <dt class="text-sm text-gray-600">体温</dt>
+          <dd class={`mt-1 text-2xl font-bold ${
+            tempStatus === 'normal' ? 'text-green-600' : 'text-red-600'
+          }`}>
+            {record.temperature}°C
+          </dd>
+          <p class="text-xs text-gray-500 mt-1">正常范围: 38.0-39.5°C</p>
+        </div>
+        
+        <div>
+          <dt class="text-sm text-gray-600">精神状态</dt>
+          <dd class="mt-1 text-lg">
+            <span class={`px-3 py-1 rounded ${
+              record.mental_state === 'normal' 
+                ? 'bg-green-100 text-green-800' 
+                : 'bg-yellow-100 text-yellow-800'
+            }`}>
+              {mentalStateLabels[record.mental_state]}
+            </span>
+          </dd>
+        </div>
+
+        <div>
+          <dt class="text-sm text-gray-600">食欲</dt>
+          <dd class="mt-1 text-lg">
+            <span class={`px-3 py-1 rounded ${
+              record.appetite === 'good' 
+                ? 'bg-green-100 text-green-800' 
+                : record.appetite === 'poor'
+                ? 'bg-red-100 text-red-800'
+                : 'bg-gray-100 text-gray-800'
+            }`}>
+              {appetiteLabels[record.appetite]}
+            </span>
+          </dd>
+        </div>
+
+        {record.respiratory_rate && (
+          <div>
+            <dt class="text-sm text-gray-600">呼吸频率</dt>
+            <dd class="mt-1 text-lg font-medium">{record.respiratory_rate} 次/分</dd>
+            <p class="text-xs text-gray-500 mt-1">正常: 15-35</p>
+          </div>
+        )}
+
+        {record.heart_rate && (
+          <div>
+            <dt class="text-sm text-gray-600">心率</dt>
+            <dd class="mt-1 text-lg font-medium">{record.heart_rate} 次/分</dd>
+            <p class="text-xs text-gray-500 mt-1">正常: 60-80</p>
+          </div>
+        )}
+
+        {record.rumen_movement && (
+          <div>
+            <dt class="text-sm text-gray-600">瘤胃蠕动</dt>
+            <dd class="mt-1 text-lg font-medium">{record.rumen_movement} 次/2分钟</dd>
+            <p class="text-xs text-gray-500 mt-1">正常: 4-10</p>
+          </div>
+        )}
+      </dl>
+    </div>
+
+    <!-- 健康状况 -->
+    {(record.fecal_condition || record.health_issues || record.treatment) && (
+      <div class="bg-white p-6 rounded-lg shadow">
+        <h2 class="text-xl font-semibold mb-4">健康状况</h2>
+        <dl class="space-y-4">
+          {record.fecal_condition && (
+            <div>
+              <dt class="text-sm text-gray-600">粪便性状</dt>
+              <dd class="mt-1">{record.fecal_condition}</dd>
+            </div>
+          )}
+
+          {record.health_issues && (
+            <div>
+              <dt class="text-sm text-gray-600">健康问题</dt>
+              <dd class="mt-1 text-red-600">{record.health_issues}</dd>
+            </div>
+          )}
+
+          {record.treatment && (
+            <div>
+              <dt class="text-sm text-gray-600">处理措施</dt>
+              <dd class="mt-1">{record.treatment}</dd>
+            </div>
+          )}
+        </dl>
+      </div>
+    )}
+
+    <!-- 备注 -->
+    {record.notes && (
+      <div class="bg-white p-6 rounded-lg shadow">
+        <h2 class="text-xl font-semibold mb-4">备注</h2>
+        <p>{record.notes}</p>
+      </div>
+    )}
+  </div>
+</Layout>
+
