@@ -1,0 +1,29 @@
+---
+/**
+ * New Cow Page
+ * 
+ * 新增奶牛页面。
+ */
+
+import Layout from '@components/layout/Layout.astro';
+import CowForm from '@components/forms/CowForm.astro';
+
+// 需要认证
+export const prerender = false;
+---
+
+<Layout title="添加奶牛">
+  <div class="max-w-4xl mx-auto">
+    <!-- 页面标题 -->
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-900">添加奶牛</h1>
+      <p class="text-gray-600 mt-1">录入新奶牛的基本信息</p>
+    </div>
+
+    <!-- 表单卡片 -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <CowForm mode="create" />
+    </div>
+  </div>
+</Layout>
+

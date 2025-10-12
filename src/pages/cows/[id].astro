@@ -1,0 +1,184 @@
+---
+/**
+ * Cow Detail Page
+ * 
+ * 奶牛详情页面，展示单头奶牛的完整信息。
+ */
+
+import Layout from '@components/layout/Layout.astro';
+import { getCowById } from '@/services/cows.service';
+import { BREED_NAMES, GENDER_NAMES, STATUS_NAMES, STATUS_COLORS, formatAge } from '@/types/cow.types';
+
+// 需要服务器端渲染
+export const prerender = false;
+
+// 获取URL参数
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect('/cows');
+}
+
+// 获取奶牛信息
+const { data: cow, error } = await getCowById(id);
+
+if (error || !cow) {
+  return Astro.redirect('/cows');
+}
+---
+
+<Layout title={`奶牛档案 - ${cow.cow_number}`}>
+  <div class="max-w-5xl mx-auto">
+    <!-- 页面头部 -->
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <div class="flex items-center space-x-3">
+          <h1 class="text-3xl font-bold text-gray-900">{cow.cow_number}</h1>
+          <span class={`px-3 py-1 text-sm font-semibold rounded-full ${STATUS_COLORS[cow.status]}`}>
+            {STATUS_NAMES[cow.status]}
+          </span>
+        </div>
+        {cow.name && (
+          <p class="text-gray-600 mt-1 text-lg">{cow.name}</p>
+        )}
+      </div>
+      <div class="flex space-x-3">
+        <a 
+          href={`/cows/${cow.id}/edit`}
+          class="bg-yellow-600 text-white px-6 py-3 rounded-lg hover:bg-yellow-700 transition-colors shadow-md"
+        >
+          编辑
+        </a>
+        <a 
+          href="/cows"
+          class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors shadow-md"
+        >
+          返回列表
+        </a>
+      </div>
+    </div>
+
+    <!-- 基本信息卡片 -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">基本信息</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">奶牛编号</label>
+          <p class="text-lg text-gray-900">{cow.cow_number}</p>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">名称</label>
+          <p class="text-lg text-gray-900">{cow.name || '-'}</p>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">品种</label>
+          <p class="text-lg text-gray-900">{BREED_NAMES[cow.breed]}</p>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">性别</label>
+          <p class="text-lg text-gray-900">{GENDER_NAMES[cow.gender]}</p>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">出生日期</label>
+          <p class="text-lg text-gray-900">{cow.birth_date}</p>
+          <p class="text-sm text-gray-500">年龄: {formatAge(cow.birth_date)}</p>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">入栏日期</label>
+          <p class="text-lg text-gray-900">{cow.entry_date}</p>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">状态</label>
+          <p class="text-lg text-gray-900">{STATUS_NAMES[cow.status]}</p>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">父牛ID</label>
+          <p class="text-lg text-gray-900">{cow.sire_id || '-'}</p>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-medium text-gray-600 mb-1">母牛ID</label>
+          <p class="text-lg text-gray-900">{cow.dam_id || '-'}</p>
+        </div>
+      </div>
+      
+      {cow.notes && (
+        <div class="mt-6">
+          <label class="block text-sm font-medium text-gray-600 mb-1">备注</label>
+          <p class="text-gray-900 whitespace-pre-wrap">{cow.notes}</p>
+        </div>
+      )}
+    </div>
+
+    <!-- 快速操作卡片 -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <a 
+        href={`/health/new?cow_id=${cow.id}`}
+        class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+      >
+        <div class="flex items-center space-x-3">
+          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-semibold text-gray-900">健康记录</h3>
+            <p class="text-sm text-gray-600">记录健康状况</p>
+          </div>
+        </div>
+      </a>
+      
+      <a 
+        href={`/milk/new?cow_id=${cow.id}`}
+        class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+      >
+        <div class="flex items-center space-x-3">
+          <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-semibold text-gray-900">产奶记录</h3>
+            <p class="text-sm text-gray-600">记录产奶数据</p>
+          </div>
+        </div>
+      </a>
+      
+      <a 
+        href={`/breeding/new?dam_id=${cow.id}`}
+        class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+      >
+        <div class="flex items-center space-x-3">
+          <div class="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="font-semibold text-gray-900">繁殖记录</h3>
+            <p class="text-sm text-gray-600">记录繁殖信息</p>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <!-- 元数据 -->
+    <div class="bg-gray-50 rounded-lg p-4 text-sm text-gray-600">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+        <div>创建时间: {new Date(cow.created_at).toLocaleString('zh-CN')}</div>
+        <div>更新时间: {new Date(cow.updated_at).toLocaleString('zh-CN')}</div>
+      </div>
+    </div>
+  </div>
+</Layout>
+

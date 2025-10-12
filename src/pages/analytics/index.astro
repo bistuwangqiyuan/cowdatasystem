@@ -1,0 +1,137 @@
+---
+/**
+ * Analytics Page
+ * 
+ * 数据分析页面，展示关键统计指标和图表。
+ */
+
+import Layout from '@components/layout/Layout.astro';
+import { getCowStats } from '@/services/cows.service';
+import { BREED_NAMES } from '@/types/cow.types';
+
+export const prerender = false;
+
+const { data: stats } = await getCowStats();
+---
+
+<Layout title="数据分析">
+  <div class="max-w-7xl mx-auto">
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-900">数据分析</h1>
+      <p class="text-gray-600 mt-1">查看养殖场的关键统计指标</p>
+    </div>
+
+    <!-- 关键指标卡片 -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-600 mb-1">奶牛总数</p>
+            <p class="text-3xl font-bold text-gray-900">{stats?.total || 0}</p>
+          </div>
+          <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-600 mb-1">在养奶牛</p>
+            <p class="text-3xl font-bold text-green-600">{stats?.active || 0}</p>
+          </div>
+          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-600 mb-1">母牛数量</p>
+            <p class="text-3xl font-bold text-pink-600">{stats?.female || 0}</p>
+          </div>
+          <div class="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow-md p-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-gray-600 mb-1">公牛数量</p>
+            <p class="text-3xl font-bold text-blue-600">{stats?.male || 0}</p>
+          </div>
+          <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+            <svg class="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 品种分布 -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+      <h2 class="text-xl font-semibold text-gray-900 mb-4">品种分布</h2>
+      <div class="space-y-4">
+        {stats?.by_breed && Object.entries(stats.by_breed).map(([breed, count]) => {
+          const percentage = stats.total > 0 ? ((count / stats.total) * 100).toFixed(1) : 0;
+          return (
+            <div>
+              <div class="flex justify-between items-center mb-1">
+                <span class="text-sm font-medium text-gray-700">
+                  {BREED_NAMES[breed as keyof typeof BREED_NAMES] || breed}
+                </span>
+                <span class="text-sm text-gray-600">{count} 头 ({percentage}%)</span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div 
+                  class="bg-primary-600 h-2 rounded-full" 
+                  style={`width: ${percentage}%`}
+                ></div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+
+    <!-- 快速链接 -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <a 
+        href="/cows"
+        class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+      >
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">奶牛档案</h3>
+        <p class="text-gray-600">查看和管理所有奶牛信息</p>
+      </a>
+      
+      <a 
+        href="/health"
+        class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+      >
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">健康记录</h3>
+        <p class="text-gray-600">查看奶牛健康监测数据</p>
+      </a>
+      
+      <a 
+        href="/milk"
+        class="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow"
+      >
+        <h3 class="text-lg font-semibold text-gray-900 mb-2">产奶记录</h3>
+        <p class="text-gray-600">查看奶牛产奶统计数据</p>
+      </a>
+    </div>
+  </div>
+</Layout>
+
