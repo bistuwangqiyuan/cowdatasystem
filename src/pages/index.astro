@@ -1,0 +1,173 @@
+---
+/**
+ * Home Page
+ * 
+ * 系统首页，展示系统简介和快速入口。
+ */
+
+import Layout from '@components/layout/Layout.astro';
+---
+
+<Layout title="首页" description="奶牛实验数据管理系统 - 科学管理，高效养殖">
+  <div class="max-w-4xl mx-auto">
+    <!-- Hero Section -->
+    <section class="text-center py-16 px-4">
+      <h1 class="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+        奶牛实验数据管理系统
+      </h1>
+      <p class="text-xl text-gray-600 mb-8 max-w-2xl mx-auto">
+        集成奶牛档案、健康监测、产奶记录、繁殖管理、饲料管理于一体，
+        实现养殖场数字化管理，提升管理效率和科学决策能力。
+      </p>
+      <div class="flex flex-col sm:flex-row justify-center gap-4">
+        <a 
+          href="/login" 
+          class="bg-primary-600 text-white px-8 py-3 rounded-lg text-lg font-semibold hover:bg-primary-700 transition-colors shadow-lg"
+        >
+          立即登录
+        </a>
+        <a 
+          href="#features" 
+          class="bg-white text-primary-600 px-8 py-3 rounded-lg text-lg font-semibold border-2 border-primary-600 hover:bg-primary-50 transition-colors"
+        >
+          了解更多
+        </a>
+      </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="features" class="py-16 px-4">
+      <h2 class="text-3xl font-bold text-center text-gray-900 mb-12">
+        核心功能
+      </h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        <!-- Feature 1: 奶牛档案 -->
+        <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+          <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">奶牛档案管理</h3>
+          <p class="text-gray-600">
+            完整记录奶牛基本信息、血缘关系、照片等，支持快速搜索和筛选。
+          </p>
+        </div>
+
+        <!-- Feature 2: 健康监测 -->
+        <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+          <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">健康监测</h3>
+          <p class="text-gray-600">
+            每日记录体温、精神状态、食欲等，自动预警健康异常。
+          </p>
+        </div>
+
+        <!-- Feature 3: 产奶记录 -->
+        <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+          <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">产奶记录</h3>
+          <p class="text-gray-600">
+            详细记录每次挤奶数据，包括产量、脂肪率、蛋白质率等指标。
+          </p>
+        </div>
+
+        <!-- Feature 4: 繁殖管理 -->
+        <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+          <div class="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-pink-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">繁殖管理</h3>
+          <p class="text-gray-600">
+            追踪配种、妊娠检查、预产期、产犊等繁殖全周期。
+          </p>
+        </div>
+
+        <!-- Feature 5: 饲料管理 -->
+        <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+          <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">饲料管理</h3>
+          <p class="text-gray-600">
+            管理饲料配方、投喂记录和成本核算，优化饲养成本。
+          </p>
+        </div>
+
+        <!-- Feature 6: 数据分析 -->
+        <div class="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow">
+          <div class="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
+            <svg class="w-6 h-6 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 mb-2">数据分析</h3>
+          <p class="text-gray-600">
+            生成可视化图表和统计报表，辅助科学决策。
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="py-16 px-4 bg-primary-50 rounded-2xl text-center my-16">
+      <h2 class="text-3xl font-bold text-gray-900 mb-4">
+        开始使用奶牛数据管理系统
+      </h2>
+      <p class="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
+        现在就登录系统，体验数字化养殖场管理带来的便利。
+      </p>
+      <a 
+        href="/login" 
+        class="inline-block bg-primary-600 text-white px-10 py-4 rounded-lg text-lg font-semibold hover:bg-primary-700 transition-colors shadow-lg"
+      >
+        立即登录 →
+      </a>
+    </section>
+  </div>
+</Layout>
+
+<style>
+  /* 自定义主色调 */
+  :global(.text-primary-600) {
+    color: #2563eb;
+  }
+  
+  :global(.bg-primary-600) {
+    background-color: #2563eb;
+  }
+  
+  :global(.bg-primary-700) {
+    background-color: #1d4ed8;
+  }
+  
+  :global(.bg-primary-50) {
+    background-color: #eff6ff;
+  }
+  
+  :global(.border-primary-600) {
+    border-color: #2563eb;
+  }
+  
+  :global(.hover\:bg-primary-50:hover) {
+    background-color: #eff6ff;
+  }
+  
+  :global(.hover\:bg-primary-700:hover) {
+    background-color: #1d4ed8;
+  }
+</style>
+
