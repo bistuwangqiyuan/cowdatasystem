@@ -1,0 +1,98 @@
+---
+/**
+ * Milk Records List Page
+ * 
+ * 产奶记录列表页面。
+ */
+
+import Layout from '@components/layout/Layout.astro';
+import { getMilkRecords } from '@/services/milk.service';
+import { MILKING_SESSION_NAMES, MILKING_SESSION_COLORS } from '@/types/milk.types';
+
+export const prerender = false;
+
+const { data: records, error } = await getMilkRecords();
+---
+
+<Layout title="产奶记录">
+  <div class="max-w-7xl mx-auto">
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">产奶记录</h1>
+        <p class="text-gray-600 mt-1">管理奶牛的产奶数据</p>
+      </div>
+      <a 
+        href="/milk/new" 
+        class="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors shadow-md flex items-center space-x-2"
+      >
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        <span>添加记录</span>
+      </a>
+    </div>
+
+    {error && (
+      <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+        加载失败：{error.message || '未知错误'}
+      </div>
+    )}
+
+    {!error && (!records || records.length === 0) && (
+      <div class="bg-gray-50 rounded-lg p-12 text-center">
+        <p class="text-gray-600 text-lg mb-4">还没有产奶记录</p>
+        <a 
+          href="/milk/new" 
+          class="inline-block bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700"
+        >
+          添加第一条记录
+        </a>
+      </div>
+    )}
+
+    {!error && records && records.length > 0 && (
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <table class="w-full">
+          <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">记录时间</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">班次</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">产量(升)</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">脂肪率(%)</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">蛋白质率(%)</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">操作</th>
+            </tr>
+          </thead>
+          <tbody class="bg-white divide-y divide-gray-200">
+            {records.map((record) => (
+              <tr class="hover:bg-gray-50">
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                  {new Date(record.recorded_datetime).toLocaleString('zh-CN')}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap">
+                  <span class={`px-2 py-1 text-xs font-semibold rounded-full ${MILKING_SESSION_COLORS[record.session]}`}>
+                    {MILKING_SESSION_NAMES[record.session]}
+                  </span>
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  {record.amount.toFixed(1)}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                  {record.fat_rate ? record.fat_rate.toFixed(2) : '-'}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                  {record.protein_rate ? record.protein_rate.toFixed(2) : '-'}
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm space-x-2">
+                  <a href={`/milk/${record.id}`} class="text-primary-600 hover:text-primary-800">查看</a>
+                  <a href={`/milk/${record.id}/edit`} class="text-yellow-600 hover:text-yellow-800">编辑</a>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    )}
+  </div>
+</Layout>
+

@@ -1,0 +1,362 @@
+---
+/**
+ * Cows List Page
+ * 
+ * 奶牛列表页面，展示所有奶牛档案。
+ * 支持搜索、筛选、排序功能。
+ */
+
+import Layout from '@components/layout/Layout.astro';
+import { getCows } from '@/services/cows.service';
+import { BREED_NAMES, GENDER_NAMES, STATUS_NAMES, STATUS_COLORS, formatAge } from '@/types/cow.types';
+
+// 预渲染为服务器端函数（需要认证）
+export const prerender = false;
+
+// 获取奶牛列表
+const { data: cows, error } = await getCows();
+
+if (error) {
+  console.error('[CowsPage] Error loading cows:', error);
+}
+---
+
+<Layout title="奶牛档案管理">
+  <div class="max-w-7xl mx-auto">
+    <!-- 页面标题 -->
+    <div class="flex justify-between items-center mb-6">
+      <div>
+        <h1 class="text-3xl font-bold text-gray-900">奶牛档案管理</h1>
+        <p class="text-gray-600 mt-1">管理所有奶牛的基本信息</p>
+      </div>
+      <a 
+        href="/cows/new" 
+        class="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors shadow-md flex items-center space-x-2"
+      >
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+        <span>添加奶牛</span>
+      </a>
+    </div>
+
+    <!-- 搜索和筛选栏 -->
+    <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <!-- 搜索框 -->
+        <div class="md:col-span-2">
+          <label for="search" class="block text-sm font-medium text-gray-700 mb-2">
+            搜索
+          </label>
+          <input
+            type="text"
+            id="search"
+            placeholder="输入编号或名称..."
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+          />
+        </div>
+
+        <!-- 品种筛选 -->
+        <div>
+          <label for="filter-breed" class="block text-sm font-medium text-gray-700 mb-2">
+            品种
+          </label>
+          <select 
+            id="filter-breed"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+          >
+            <option value="">全部品种</option>
+            {Object.entries(BREED_NAMES).map(([value, label]) => (
+              <option value={value}>{label}</option>
+            ))}
+          </select>
+        </div>
+
+        <!-- 状态筛选 -->
+        <div>
+          <label for="filter-status" class="block text-sm font-medium text-gray-700 mb-2">
+            状态
+          </label>
+          <select 
+            id="filter-status"
+            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500"
+          >
+            <option value="">全部状态</option>
+            {Object.entries(STATUS_NAMES).map(([value, label]) => (
+              <option value={value}>{label}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- 奶牛列表 -->
+    {error && (
+      <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+        加载失败：{error.message || '未知错误'}
+      </div>
+    )}
+
+    {!error && (!cows || cows.length === 0) && (
+      <div class="bg-gray-50 rounded-lg p-12 text-center">
+        <svg class="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+        <p class="text-gray-600 text-lg mb-4">还没有奶牛档案</p>
+        <a 
+          href="/cows/new" 
+          class="inline-block bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700"
+        >
+          添加第一头奶牛
+        </a>
+      </div>
+    )}
+
+    {!error && cows && cows.length > 0 && (
+      <div class="bg-white rounded-lg shadow-md overflow-hidden">
+        <!-- 桌面端表格 -->
+        <div class="hidden md:block overflow-x-auto">
+          <table class="w-full">
+            <thead class="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  编号
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  名称
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  品种
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  性别
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  年龄
+                </th>
+                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  状态
+                </th>
+                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  操作
+                </th>
+              </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200" id="cows-table-body">
+              {cows.map((cow) => (
+                <tr class="hover:bg-gray-50 transition-colors cow-row" data-cow-id={cow.id}>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                    {cow.cow_number}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    {cow.name || '-'}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    {BREED_NAMES[cow.breed]}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    {GENDER_NAMES[cow.gender]}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                    {formatAge(cow.birth_date)}
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap">
+                    <span class={`px-2 py-1 text-xs font-semibold rounded-full ${STATUS_COLORS[cow.status]}`}>
+                      {STATUS_NAMES[cow.status]}
+                    </span>
+                  </td>
+                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+                    <a 
+                      href={`/cows/${cow.id}`}
+                      class="text-primary-600 hover:text-primary-800"
+                    >
+                      查看
+                    </a>
+                    <a 
+                      href={`/cows/${cow.id}/edit`}
+                      class="text-yellow-600 hover:text-yellow-800"
+                    >
+                      编辑
+                    </a>
+                    <button 
+                      class="text-red-600 hover:text-red-800 delete-btn"
+                      data-cow-id={cow.id}
+                      data-cow-number={cow.cow_number}
+                    >
+                      删除
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 移动端卡片 -->
+        <div class="md:hidden divide-y divide-gray-200" id="cows-cards">
+          {cows.map((cow) => (
+            <div class="p-4 cow-card" data-cow-id={cow.id}>
+              <div class="flex justify-between items-start mb-2">
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900">{cow.cow_number}</h3>
+                  <p class="text-sm text-gray-600">{cow.name || '未命名'}</p>
+                </div>
+                <span class={`px-2 py-1 text-xs font-semibold rounded-full ${STATUS_COLORS[cow.status]}`}>
+                  {STATUS_NAMES[cow.status]}
+                </span>
+              </div>
+              <div class="grid grid-cols-2 gap-2 text-sm text-gray-700 mb-3">
+                <div>品种: {BREED_NAMES[cow.breed]}</div>
+                <div>性别: {GENDER_NAMES[cow.gender]}</div>
+                <div class="col-span-2">年龄: {formatAge(cow.birth_date)}</div>
+              </div>
+              <div class="flex space-x-2">
+                <a 
+                  href={`/cows/${cow.id}`}
+                  class="flex-1 bg-primary-600 text-white text-center py-2 rounded-lg hover:bg-primary-700"
+                >
+                  查看
+                </a>
+                <a 
+                  href={`/cows/${cow.id}/edit`}
+                  class="flex-1 bg-yellow-600 text-white text-center py-2 rounded-lg hover:bg-yellow-700"
+                >
+                  编辑
+                </a>
+                <button 
+                  class="flex-1 bg-red-600 text-white py-2 rounded-lg hover:bg-red-700 delete-btn"
+                  data-cow-id={cow.id}
+                  data-cow-number={cow.cow_number}
+                >
+                  删除
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    <!-- 统计信息 -->
+    {!error && cows && cows.length > 0 && (
+      <div class="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div class="bg-white rounded-lg shadow-md p-4">
+          <p class="text-sm text-gray-600">总数</p>
+          <p class="text-2xl font-bold text-gray-900">{cows.length}</p>
+        </div>
+        <div class="bg-white rounded-lg shadow-md p-4">
+          <p class="text-sm text-gray-600">在养</p>
+          <p class="text-2xl font-bold text-green-600">
+            {cows.filter(c => c.status === 'active').length}
+          </p>
+        </div>
+        <div class="bg-white rounded-lg shadow-md p-4">
+          <p class="text-sm text-gray-600">母牛</p>
+          <p class="text-2xl font-bold text-pink-600">
+            {cows.filter(c => c.gender === 'female').length}
+          </p>
+        </div>
+        <div class="bg-white rounded-lg shadow-md p-4">
+          <p class="text-sm text-gray-600">公牛</p>
+          <p class="text-2xl font-bold text-blue-600">
+            {cows.filter(c => c.gender === 'male').length}
+          </p>
+        </div>
+      </div>
+    )}
+  </div>
+</Layout>
+
+<script>
+  import { deleteCow } from '@/services/cows.service';
+  import { subscribeToCows, unsubscribe } from '@/lib/realtime';
+  import type { RealtimeChannel } from '@supabase/supabase-js';
+  
+  // 搜索和筛选
+  const searchInput = document.getElementById('search') as HTMLInputElement;
+  const breedFilter = document.getElementById('filter-breed') as HTMLSelectElement;
+  const statusFilter = document.getElementById('filter-status') as HTMLSelectElement;
+  
+  function filterCows() {
+    const searchTerm = searchInput?.value.toLowerCase() || '';
+    const breed = breedFilter?.value || '';
+    const status = statusFilter?.value || '';
+    
+    const rows = document.querySelectorAll('.cow-row, .cow-card');
+    
+    rows.forEach((row) => {
+      const element = row as HTMLElement;
+      const cowId = element.dataset.cowId;
+      
+      // 获取奶牛数据（从DOM中提取）
+      const text = element.textContent?.toLowerCase() || '';
+      const matchesSearch = !searchTerm || text.includes(searchTerm);
+      const matchesBreed = !breed || text.includes(breed);
+      const matchesStatus = !status || text.includes(status);
+      
+      if (matchesSearch && matchesBreed && matchesStatus) {
+        element.classList.remove('hidden');
+      } else {
+        element.classList.add('hidden');
+      }
+    });
+  }
+  
+  searchInput?.addEventListener('input', filterCows);
+  breedFilter?.addEventListener('change', filterCows);
+  statusFilter?.addEventListener('change', filterCows);
+  
+  // 删除功能
+  const deleteButtons = document.querySelectorAll('.delete-btn');
+  
+  deleteButtons.forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const cowId = btn.getAttribute('data-cow-id');
+      const cowNumber = btn.getAttribute('data-cow-number');
+      
+      if (!cowId) return;
+      
+      if (!confirm(`确定要删除奶牛 ${cowNumber} 吗？此操作不可恢复。`)) {
+        return;
+      }
+      
+      try {
+        const result = await deleteCow(cowId);
+        
+        if (result.error) {
+          throw new Error(result.error.message || '删除失败');
+        }
+        
+        // 删除成功，刷新页面
+        window.location.reload();
+        
+      } catch (error: any) {
+        alert('删除失败：' + (error.message || '未知错误'));
+      }
+    });
+  });
+  
+  // 实时数据同步
+  let channel: RealtimeChannel | null = null;
+  
+  channel = subscribeToCows((payload) => {
+    console.log('[CowsList] Realtime update:', payload);
+    
+    // 简单处理：数据变更时刷新页面
+    // 生产环境应该更精细地更新DOM
+    if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE' || payload.eventType === 'DELETE') {
+      // 延迟刷新，避免频繁刷新
+      setTimeout(() => {
+        window.location.reload();
+      }, 1000);
+    }
+  });
+  
+  // 清理订阅
+  window.addEventListener('beforeunload', () => {
+    if (channel) {
+      unsubscribe(channel);
+    }
+  });
+</script>
+

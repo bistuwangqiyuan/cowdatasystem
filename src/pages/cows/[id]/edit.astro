@@ -1,0 +1,44 @@
+---
+/**
+ * Edit Cow Page
+ * 
+ * 编辑奶牛页面。
+ */
+
+import Layout from '@components/layout/Layout.astro';
+import CowForm from '@components/forms/CowForm.astro';
+import { getCowById } from '@/services/cows.service';
+
+// 需要服务器端渲染
+export const prerender = false;
+
+// 获取URL参数
+const { id } = Astro.params;
+
+if (!id) {
+  return Astro.redirect('/cows');
+}
+
+// 获取奶牛信息
+const { data: cow, error } = await getCowById(id);
+
+if (error || !cow) {
+  return Astro.redirect('/cows');
+}
+---
+
+<Layout title={`编辑奶牛 - ${cow.cow_number}`}>
+  <div class="max-w-4xl mx-auto">
+    <!-- 页面标题 -->
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-900">编辑奶牛</h1>
+      <p class="text-gray-600 mt-1">修改奶牛 {cow.cow_number} 的信息</p>
+    </div>
+
+    <!-- 表单卡片 -->
+    <div class="bg-white rounded-lg shadow-md p-6">
+      <CowForm mode="edit" cow={cow} />
+    </div>
+  </div>
+</Layout>
+

@@ -128,7 +128,6 @@ CREATE TABLE milk_records (
 
 CREATE INDEX idx_milk_cow ON milk_records(cow_id);
 CREATE INDEX idx_milk_datetime ON milk_records(recorded_datetime DESC);
-CREATE INDEX idx_milk_date ON milk_records(DATE(recorded_datetime) DESC);
 CREATE INDEX idx_milk_deleted ON milk_records(deleted_at) WHERE deleted_at IS NULL;
 COMMENT ON TABLE milk_records IS '产奶记录表，记录每次挤奶的产量和质量';
 
