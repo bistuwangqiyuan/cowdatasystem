@@ -71,7 +71,10 @@ export async function createMilkRecord(data: MilkRecordFormData) {
 export async function getMilkRecords(filters?: MilkRecordFilters) {
   let query = supabase
     .from('milk_records')
-    .select('*')
+    .select(`
+      *,
+      cow:cows!inner(cow_number, name)
+    `)
     .is('deleted_at', null)
     .order('recorded_datetime', { ascending: false });
 
