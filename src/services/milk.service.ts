@@ -92,8 +92,8 @@ export async function getMilkRecords(filters?: MilkRecordFilters) {
   }
 
   // 按挤奶时段过滤
-  if (filters?.milking_session) {
-    query = query.eq('milking_session', filters.milking_session);
+  if (filters?.session) {
+    query = query.eq('session', filters.session);
   }
 
   // 按挤奶人员过滤
@@ -220,8 +220,8 @@ export async function getMilkStats(
   }
 
   // 计算统计数据
-  const totalYield = data.reduce((sum, r) => sum + r.milk_yield, 0);
-  const yields = data.map(r => r.milk_yield);
+  const totalYield = data.reduce((sum, r) => sum + r.amount, 0);
+  const yields = data.map(r => r.amount);
   
   const stats: MilkStats = {
     total_records: data.length,
@@ -231,16 +231,16 @@ export async function getMilkStats(
   };
 
   // 计算平均质量指标
-  const recordsWithFat = data.filter(r => r.fat_percentage != null);
+  const recordsWithFat = data.filter(r => r.fat_rate != null);
   if (recordsWithFat.length > 0) {
     stats.avg_fat_percentage = 
-      recordsWithFat.reduce((sum, r) => sum + (r.fat_percentage || 0), 0) / recordsWithFat.length;
+      recordsWithFat.reduce((sum, r) => sum + (r.fat_rate || 0), 0) / recordsWithFat.length;
   }
 
-  const recordsWithProtein = data.filter(r => r.protein_percentage != null);
+  const recordsWithProtein = data.filter(r => r.protein_rate != null);
   if (recordsWithProtein.length > 0) {
     stats.avg_protein_percentage = 
-      recordsWithProtein.reduce((sum, r) => sum + (r.protein_percentage || 0), 0) / recordsWithProtein.length;
+      recordsWithProtein.reduce((sum, r) => sum + (r.protein_rate || 0), 0) / recordsWithProtein.length;
   }
 
   const recordsWithSCC = data.filter(r => r.somatic_cell_count != null);
@@ -274,7 +274,7 @@ export async function getMilkTrend(cowId: string, days: number = 30): Promise<Mi
 
   const { data, error } = await supabase
     .from('milk_records')
-    .select('recorded_datetime, milk_yield, fat_percentage, protein_percentage')
+    .select('recorded_datetime, amount, fat_rate, protein_rate')
     .eq('cow_id', cowId)
     .is('deleted_at', null)
     .gte('recorded_datetime', startDate.toISOString())
@@ -293,22 +293,22 @@ export async function getMilkTrend(cowId: string, days: number = 30): Promise<Mi
     
     if (dailyData.has(date)) {
       const existing = dailyData.get(date)!;
-      existing.yield += record.milk_yield;
+      existing.yield += record.amount;
       // 计算平均值
-      if (record.fat_percentage) {
+      if (record.fat_rate) {
         existing.fat_percentage = 
-          ((existing.fat_percentage || 0) + record.fat_percentage) / 2;
+          ((existing.fat_percentage || 0) + record.fat_rate) / 2;
       }
-      if (record.protein_percentage) {
+      if (record.protein_rate) {
         existing.protein_percentage = 
-          ((existing.protein_percentage || 0) + record.protein_percentage) / 2;
+          ((existing.protein_percentage || 0) + record.protein_rate) / 2;
       }
     } else {
       dailyData.set(date, {
         date,
-        yield: record.milk_yield,
-        fat_percentage: record.fat_percentage || undefined,
-        protein_percentage: record.protein_percentage || undefined,
+        yield: record.amount,
+        fat_percentage: record.fat_rate || undefined,
+        protein_percentage: record.protein_rate || undefined,
       });
     }
   });

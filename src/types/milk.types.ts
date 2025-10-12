@@ -25,17 +25,17 @@ export interface MilkRecord {
   /** 记录日期时间 */
   recorded_datetime: string;
   
-  /** 挤奶时段 */
-  milking_session: MilkingSessionType;
+  /** 挤奶时段 (数据库列名: session) */
+  session: MilkingSessionType;
   
-  /** 产奶量 (L) - 必须 > 0 */
-  milk_yield: number;
+  /** 产奶量 (L) - 必须 > 0 (数据库列名: amount) */
+  amount: number;
   
-  /** 脂肪率 (%) - 正常范围: 3.0-5.0 */
-  fat_percentage?: number;
+  /** 脂肪率 (%) - 正常范围: 3.0-5.0 (数据库列名: fat_rate) */
+  fat_rate?: number;
   
-  /** 蛋白质率 (%) - 正常范围: 2.8-3.8 */
-  protein_percentage?: number;
+  /** 蛋白质率 (%) - 正常范围: 2.8-3.8 (数据库列名: protein_rate) */
+  protein_rate?: number;
   
   /** 乳糖含量 (%) - 正常范围: 4.5-5.5 */
   lactose_percentage?: number;
@@ -44,7 +44,7 @@ export interface MilkRecord {
   somatic_cell_count?: number;
   
   /** 挤奶人员ID */
-  milker_id: string;
+  milker_id?: string;
   
   /** 备注 */
   notes?: string;
@@ -68,17 +68,17 @@ export interface MilkRecordFormData {
   /** 记录日期时间 */
   recorded_datetime: string;
   
-  /** 挤奶时段 */
-  milking_session: MilkingSessionType;
+  /** 挤奶时段 (数据库列名: session) */
+  session: MilkingSessionType;
   
-  /** 产奶量 (L) */
-  milk_yield: number;
+  /** 产奶量 (L) (数据库列名: amount) */
+  amount: number;
   
-  /** 脂肪率 (%) - 可选 */
-  fat_percentage?: number;
+  /** 脂肪率 (%) - 可选 (数据库列名: fat_rate) */
+  fat_rate?: number;
   
-  /** 蛋白质率 (%) - 可选 */
-  protein_percentage?: number;
+  /** 蛋白质率 (%) - 可选 (数据库列名: protein_rate) */
+  protein_rate?: number;
   
   /** 乳糖含量 (%) - 可选 */
   lactose_percentage?: number;
@@ -87,7 +87,7 @@ export interface MilkRecordFormData {
   somatic_cell_count?: number;
   
   /** 挤奶人员ID */
-  milker_id: string;
+  milker_id?: string;
   
   /** 备注 - 可选 */
   notes?: string;
@@ -106,8 +106,8 @@ export interface MilkRecordFilters {
   /** 按日期范围过滤 - 结束日期 */
   end_date?: string;
   
-  /** 按挤奶时段过滤 */
-  milking_session?: MilkingSessionType;
+  /** 按挤奶时段过滤 (数据库列名: session) */
+  session?: MilkingSessionType;
   
   /** 按挤奶人员过滤 */
   milker_id?: string;
@@ -250,5 +250,5 @@ export function isMilkQualityGood(record: Partial<MilkRecord>): boolean {
  * @returns 总产奶量 (L)
  */
 export function calculateDailyYield(records: MilkRecord[]): number {
-  return records.reduce((sum, record) => sum + record.milk_yield, 0);
+  return records.reduce((sum, record) => sum + record.amount, 0);
 }
