@@ -1,0 +1,178 @@
+---
+/**
+ * Header Component
+ * 
+ * 统一头部组件，包含导航栏和用户菜单。
+ * 响应式设计，移动端显示汉堡菜单。
+ */
+---
+
+<header class="bg-white shadow-sm sticky top-0 z-50">
+  <div class="container-app">
+    <div class="flex justify-between items-center h-16">
+      <!-- Logo & Title -->
+      <div class="flex items-center space-x-3">
+        <a href="/" class="flex items-center space-x-2 hover:opacity-80 transition-opacity">
+          <svg class="w-8 h-8 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <h1 class="text-xl md:text-2xl font-bold text-primary-600">
+            奶牛管理系统
+          </h1>
+        </a>
+      </div>
+      
+      <!-- Desktop Navigation -->
+      <nav class="hidden md:flex items-center space-x-6">
+        <a href="/cows" class="nav-link">奶牛档案</a>
+        <a href="/health" class="nav-link">健康记录</a>
+        <a href="/milk" class="nav-link">产奶记录</a>
+        <a href="/breeding" class="nav-link">繁殖管理</a>
+        <a href="/analytics" class="nav-link">数据分析</a>
+      </nav>
+      
+      <!-- User Menu & Mobile Toggle -->
+      <div class="flex items-center space-x-4">
+        <!-- Notifications -->
+        <button id="notifications-btn" class="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <svg class="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+          </svg>
+          <span id="notification-badge" class="hidden absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+        </button>
+        
+        <!-- User Avatar -->
+        <div class="relative" id="user-menu">
+          <button class="flex items-center space-x-2 hover:bg-gray-100 px-3 py-2 rounded-lg transition-colors">
+            <div class="w-8 h-8 bg-primary-100 rounded-full flex items-center justify-center">
+              <span class="text-primary-600 font-semibold text-sm" id="user-avatar">U</span>
+            </div>
+            <span class="hidden md:inline text-sm font-medium text-gray-700" id="user-name">用户</span>
+            <svg class="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </button>
+          
+          <!-- Dropdown Menu -->
+          <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 border border-gray-200">
+            <a href="/profile" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">个人资料</a>
+            <a href="/settings" class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">设置</a>
+            <hr class="my-1" />
+            <button id="logout-btn" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100">
+              退出登录
+            </button>
+          </div>
+        </div>
+        
+        <!-- Mobile Menu Toggle -->
+        <button id="mobile-menu-btn" class="md:hidden p-2 hover:bg-gray-100 rounded-lg transition-colors">
+          <svg class="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Mobile Navigation -->
+  <nav id="mobile-nav" class="hidden md:hidden bg-white border-t border-gray-200">
+    <div class="container-app py-4 space-y-2">
+      <a href="/cows" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">奶牛档案</a>
+      <a href="/health" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">健康记录</a>
+      <a href="/milk" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">产奶记录</a>
+      <a href="/breeding" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">繁殖管理</a>
+      <a href="/analytics" class="block px-4 py-2 text-gray-700 hover:bg-gray-100 rounded-lg">数据分析</a>
+    </div>
+  </nav>
+</header>
+
+<style>
+  .nav-link {
+    @apply text-gray-700 hover:text-primary-600 font-medium transition-colors;
+    @apply px-3 py-2 rounded-lg hover:bg-primary-50;
+  }
+  
+  .nav-link.active {
+    @apply text-primary-600 bg-primary-50;
+  }
+</style>
+
+<script>
+  import { getCurrentUser, signOut } from '@/lib/auth';
+  import { subscribeToNotifications, unsubscribe } from '@/lib/realtime';
+  import type { RealtimeChannel } from '@supabase/supabase-js';
+  
+  // Mobile menu toggle
+  const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+  const mobileNav = document.getElementById('mobile-nav');
+  
+  mobileMenuBtn?.addEventListener('click', () => {
+    mobileNav?.classList.toggle('hidden');
+  });
+  
+  // User dropdown toggle
+  const userMenu = document.getElementById('user-menu');
+  const userDropdown = document.getElementById('user-dropdown');
+  
+  userMenu?.addEventListener('click', () => {
+    userDropdown?.classList.toggle('hidden');
+  });
+  
+  // Close dropdown when clicking outside
+  document.addEventListener('click', (e) => {
+    if (!userMenu?.contains(e.target as Node)) {
+      userDropdown?.classList.add('hidden');
+    }
+  });
+  
+  // Logout
+  const logoutBtn = document.getElementById('logout-btn');
+  logoutBtn?.addEventListener('click', async () => {
+    const { error } = await signOut();
+    if (!error) {
+      window.location.href = '/login';
+    }
+  });
+  
+  // Load user info
+  let notificationChannel: RealtimeChannel | null = null;
+  
+  async function loadUserInfo() {
+    const user = await getCurrentUser();
+    if (user) {
+      const userName = user.email?.split('@')[0] || '用户';
+      const userAvatar = userName.charAt(0).toUpperCase();
+      
+      const userNameEl = document.getElementById('user-name');
+      const userAvatarEl = document.getElementById('user-avatar');
+      
+      if (userNameEl) userNameEl.textContent = userName;
+      if (userAvatarEl) userAvatarEl.textContent = userAvatar;
+      
+      // 订阅通知
+      notificationChannel = subscribeToNotifications(user.id, (payload) => {
+        // 显示新通知徽章
+        const badge = document.getElementById('notification-badge');
+        badge?.classList.remove('hidden');
+        
+        // 可选：显示浏览器通知
+        if (Notification.permission === 'granted') {
+          new Notification(payload.new.title, {
+            body: payload.new.content,
+            icon: '/favicon.svg',
+          });
+        }
+      });
+    }
+  }
+  
+  loadUserInfo();
+  
+  // 清理订阅
+  window.addEventListener('beforeunload', () => {
+    if (notificationChannel) {
+      unsubscribe(notificationChannel);
+    }
+  });
+</script>
+

@@ -1,0 +1,47 @@
+---
+/**
+ * Footer Component
+ * 
+ * 统一底部组件。
+ */
+
+const currentYear = new Date().getFullYear();
+---
+
+<footer class="bg-gray-800 text-white py-8 mt-auto">
+  <div class="container-app">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <!-- About -->
+      <div>
+        <h3 class="text-lg font-semibold mb-4">关于系统</h3>
+        <p class="text-gray-300 text-sm">
+          奶牛实验数据管理系统帮助养殖场实现数字化管理，提升管理效率和科学决策能力。
+        </p>
+      </div>
+      
+      <!-- Quick Links -->
+      <div>
+        <h3 class="text-lg font-semibold mb-4">快速链接</h3>
+        <ul class="space-y-2">
+          <li><a href="/cows" class="text-gray-300 hover:text-white text-sm">奶牛档案</a></li>
+          <li><a href="/analytics" class="text-gray-300 hover:text-white text-sm">数据分析</a></li>
+          <li><a href="/help" class="text-gray-300 hover:text-white text-sm">帮助文档</a></li>
+        </ul>
+      </div>
+      
+      <!-- Contact -->
+      <div>
+        <h3 class="text-lg font-semibold mb-4">联系我们</h3>
+        <ul class="space-y-2 text-sm text-gray-300">
+          <li>邮箱: support@example.com</li>
+          <li>电话: 400-xxx-xxxx</li>
+        </ul>
+      </div>
+    </div>
+    
+    <div class="border-t border-gray-700 mt-8 pt-6 text-center text-sm text-gray-400">
+      <p>&copy; {currentYear} 奶牛实验数据管理系统. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
