@@ -1,0 +1,326 @@
+---
+import Layout from '../components/layout/Layout.astro';
+
+const title = '帮助中心';
+---
+
+<Layout title={title}>
+  <div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- 页面标题 -->
+      <div class="mb-8 text-center">
+        <h1 class="text-3xl font-bold text-gray-900">{title}</h1>
+        <p class="mt-2 text-lg text-gray-600">
+          奶牛管理系统使用指南和常见问题解答
+        </p>
+      </div>
+
+      <!-- 搜索框 -->
+      <div class="max-w-2xl mx-auto mb-12">
+        <div class="relative">
+          <input
+            type="text"
+            placeholder="搜索帮助内容..."
+            class="w-full px-4 py-3 pl-12 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+          />
+          <svg class="absolute left-4 top-3.5 h-5 w-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- 快速导航 -->
+      <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-12">
+        <a href="#getting-started" class="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-center w-12 h-12 bg-indigo-100 rounded-lg mb-4">
+            <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">快速开始</h3>
+          <p class="text-sm text-gray-600">了解系统基本操作</p>
+        </a>
+
+        <a href="#features" class="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-center w-12 h-12 bg-green-100 rounded-lg mb-4">
+            <svg class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">功能介绍</h3>
+          <p class="text-sm text-gray-600">详细了解各个模块</p>
+        </a>
+
+        <a href="#faq" class="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-center w-12 h-12 bg-yellow-100 rounded-lg mb-4">
+            <svg class="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">常见问题</h3>
+          <p class="text-sm text-gray-600">查看问题解答</p>
+        </a>
+
+        <a href="#contact" class="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow">
+          <div class="flex items-center justify-center w-12 h-12 bg-blue-100 rounded-lg mb-4">
+            <svg class="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+          </div>
+          <h3 class="text-lg font-semibold text-gray-900 mb-2">联系支持</h3>
+          <p class="text-sm text-gray-600">获取技术支持</p>
+        </a>
+      </div>
+
+      <!-- 快速开始 -->
+      <div id="getting-started" class="bg-white shadow rounded-lg p-8 mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">快速开始</h2>
+        
+        <div class="space-y-6">
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+              <span class="flex items-center justify-center w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full mr-3 text-sm font-bold">1</span>
+              登录系统
+            </h3>
+            <p class="text-gray-600 ml-11">
+              使用管理员提供的账号和密码登录系统。首次登录建议修改密码。
+            </p>
+          </div>
+
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+              <span class="flex items-center justify-center w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full mr-3 text-sm font-bold">2</span>
+              添加奶牛档案
+            </h3>
+            <p class="text-gray-600 ml-11">
+              进入"奶牛档案"页面，点击"新增奶牛"按钮，填写奶牛的基本信息，包括编号、品种、性别等。
+            </p>
+          </div>
+
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+              <span class="flex items-center justify-center w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full mr-3 text-sm font-bold">3</span>
+              记录日常数据
+            </h3>
+            <p class="text-gray-600 ml-11">
+              在相应模块记录健康检查、产奶量、饲喂情况等日常数据，系统会自动生成分析报告。
+            </p>
+          </div>
+
+          <div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+              <span class="flex items-center justify-center w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full mr-3 text-sm font-bold">4</span>
+              查看数据分析
+            </h3>
+            <p class="text-gray-600 ml-11">
+              访问"数据分析"页面，查看牛群的整体健康状况、产奶趋势、繁殖效率等关键指标。
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 功能介绍 -->
+      <div id="features" class="bg-white shadow rounded-lg p-8 mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">功能介绍</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="border border-gray-200 rounded-lg p-4">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">奶牛档案</h3>
+            <p class="text-gray-600 text-sm mb-3">
+              管理奶牛的基本信息，包括编号、品种、出生日期、父母信息等。支持批量导入和导出。
+            </p>
+            <a href="/cows" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+              前往奶牛档案 →
+            </a>
+          </div>
+
+          <div class="border border-gray-200 rounded-lg p-4">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">健康记录</h3>
+            <p class="text-gray-600 text-sm mb-3">
+              记录健康检查结果、疾病诊断、治疗方案等。系统会根据数据自动生成健康预警。
+            </p>
+            <a href="/health" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+              前往健康记录 →
+            </a>
+          </div>
+
+          <div class="border border-gray-200 rounded-lg p-4">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">产奶记录</h3>
+            <p class="text-gray-600 text-sm mb-3">
+              追踪每头奶牛的日产奶量、乳脂率、体细胞数等指标，分析产奶趋势。
+            </p>
+            <a href="/milk" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+              前往产奶记录 →
+            </a>
+          </div>
+
+          <div class="border border-gray-200 rounded-lg p-4">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">繁殖管理</h3>
+            <p class="text-gray-600 text-sm mb-3">
+              管理配种、妊娠检查、预产期、产犊等繁殖相关信息，提高繁殖效率。
+            </p>
+            <a href="/breeding" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+              前往繁殖管理 →
+            </a>
+          </div>
+
+          <div class="border border-gray-200 rounded-lg p-4">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">饲料管理</h3>
+            <p class="text-gray-600 text-sm mb-3">
+              管理饲料配方和饲喂记录，优化营养方案，降低饲养成本。
+            </p>
+            <a href="/feed" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+              前往饲料管理 →
+            </a>
+          </div>
+
+          <div class="border border-gray-200 rounded-lg p-4">
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">数据分析</h3>
+            <p class="text-gray-600 text-sm mb-3">
+              通过图表和报表展示牛群的各项指标，帮助做出科学决策。
+            </p>
+            <a href="/analytics" class="text-indigo-600 hover:text-indigo-700 text-sm font-medium">
+              前往数据分析 →
+            </a>
+          </div>
+        </div>
+      </div>
+
+      <!-- 常见问题 -->
+      <div id="faq" class="bg-white shadow rounded-lg p-8 mb-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">常见问题</h2>
+        
+        <div class="space-y-4">
+          <details class="border border-gray-200 rounded-lg p-4">
+            <summary class="font-semibold text-gray-900 cursor-pointer">
+              如何导入现有的奶牛数据？
+            </summary>
+            <p class="mt-3 text-gray-600 text-sm">
+              您可以使用CSV或Excel文件批量导入奶牛数据。进入"奶牛档案"页面，点击"批量导入"按钮，下载模板文件，按照模板格式填写数据后上传即可。
+            </p>
+          </details>
+
+          <details class="border border-gray-200 rounded-lg p-4">
+            <summary class="font-semibold text-gray-900 cursor-pointer">
+              如何设置健康预警规则？
+            </summary>
+            <p class="mt-3 text-gray-600 text-sm">
+              进入"设置"页面，找到"预警规则"选项，可以自定义体温、产奶量、体细胞数等指标的预警阈值。当数据异常时，系统会自动发送通知。
+            </p>
+          </details>
+
+          <details class="border border-gray-200 rounded-lg p-4">
+            <summary class="font-semibold text-gray-900 cursor-pointer">
+              如何导出数据报表？
+            </summary>
+            <p class="mt-3 text-gray-600 text-sm">
+              在各个模块的列表页面，点击"导出"按钮即可下载当前筛选条件下的数据。支持导出为Excel、PDF等格式。
+            </p>
+          </details>
+
+          <details class="border border-gray-200 rounded-lg p-4">
+            <summary class="font-semibold text-gray-900 cursor-pointer">
+              忘记密码怎么办？
+            </summary>
+            <p class="mt-3 text-gray-600 text-sm">
+              在登录页面点击"忘记密码"，输入注册邮箱，系统会发送密码重置链接到您的邮箱。如果仍无法登录，请联系管理员。
+            </p>
+          </details>
+
+          <details class="border border-gray-200 rounded-lg p-4">
+            <summary class="font-semibold text-gray-900 cursor-pointer">
+              系统支持移动端访问吗？
+            </summary>
+            <p class="mt-3 text-gray-600 text-sm">
+              是的，系统采用响应式设计，可以在手机、平板等移动设备上正常访问和使用。
+            </p>
+          </details>
+
+          <details class="border border-gray-200 rounded-lg p-4">
+            <summary class="font-semibold text-gray-900 cursor-pointer">
+              数据多久备份一次？
+            </summary>
+            <p class="mt-3 text-gray-600 text-sm">
+              系统采用云端存储，数据实时同步。同时每天凌晨会自动进行全量备份，保留最近30天的备份数据。
+            </p>
+          </details>
+        </div>
+      </div>
+
+      <!-- 联系支持 -->
+      <div id="contact" class="bg-white shadow rounded-lg p-8">
+        <h2 class="text-2xl font-bold text-gray-900 mb-6">联系支持</h2>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="text-center">
+            <div class="flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-full mx-auto mb-4">
+              <svg class="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">邮件支持</h3>
+            <p class="text-gray-600 text-sm mb-2">
+              发送邮件到
+            </p>
+            <a href="mailto:support@cowdatasystem.com" class="text-indigo-600 hover:text-indigo-700 font-medium">
+              support@cowdatasystem.com
+            </a>
+          </div>
+
+          <div class="text-center">
+            <div class="flex items-center justify-center w-16 h-16 bg-green-100 rounded-full mx-auto mb-4">
+              <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">在线客服</h3>
+            <p class="text-gray-600 text-sm mb-2">
+              工作时间 9:00-18:00
+            </p>
+            <button class="text-indigo-600 hover:text-indigo-700 font-medium">
+              开始聊天
+            </button>
+          </div>
+
+          <div class="text-center">
+            <div class="flex items-center justify-center w-16 h-16 bg-yellow-100 rounded-full mx-auto mb-4">
+              <svg class="w-8 h-8 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">使用文档</h3>
+            <p class="text-gray-600 text-sm mb-2">
+              详细的操作手册
+            </p>
+            <a href="/docs" class="text-indigo-600 hover:text-indigo-700 font-medium">
+              查看文档
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
+<style>
+  details summary::-webkit-details-marker {
+    display: none;
+  }
+  
+  details summary {
+    list-style: none;
+  }
+  
+  details summary::after {
+    content: '+';
+    float: right;
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #6366f1;
+  }
+  
+  details[open] summary::after {
+    content: '−';
+  }
+</style>
+
