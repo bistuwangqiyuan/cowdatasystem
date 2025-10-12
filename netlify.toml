@@ -1,12 +1,10 @@
-/**
- * Netlify Deployment Configuration
- * 
- * 部署配置:
- * - 构建命令和发布目录
- * - 安全头部
- * - 重定向规则
- * - 函数配置
- */
+# Netlify Deployment Configuration
+# 
+# 部署配置:
+# - 构建命令和发布目录
+# - 安全头部
+# - 重定向规则
+# - 函数配置
 
 [build]
   # 构建命令
@@ -104,14 +102,13 @@
   [headers.values]
     Cache-Control = "public, max-age=0, must-revalidate"
 
-# 插件配置
-[[plugins]]
-  package = "@netlify/plugin-lighthouse"
-  
-  [plugins.inputs]
-    # Lighthouse性能监控
-    performance = 90
-    accessibility = 90
-    best-practices = 90
-    seo = 90
+# 插件配置（可选 - 如需性能监控可在Netlify控制台配置）
+# [[plugins]]
+#   package = "@netlify/plugin-lighthouse"
+#   
+#   [plugins.inputs.thresholds]
+#     performance = 0.9
+#     accessibility = 0.9
+#     best-practices = 0.9
+#     seo = 0.9
 
