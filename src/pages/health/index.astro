@@ -2,6 +2,8 @@
 /**
  * 健康记录列表页面
  */
+export const prerender = false; // 服务器端渲染
+
 import Layout from '@components/layout/Layout.astro';
 import { getHealthRecords } from '@/services/health.service';
 import { isAbnormalHealth, getTemperatureStatus } from '@/types/health.types';

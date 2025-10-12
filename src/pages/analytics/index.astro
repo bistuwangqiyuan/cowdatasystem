@@ -2,6 +2,8 @@
 /**
  * 数据分析页面
  */
+export const prerender = false; // 服务器端渲染
+
 import Layout from '@components/layout/Layout.astro';
 import { getCows } from '@/services/cows.service';
 import { getHealthRecords } from '@/services/health.service';

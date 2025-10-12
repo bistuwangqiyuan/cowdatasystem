@@ -2,6 +2,8 @@
 /**
  * 产奶记录列表页面
  */
+export const prerender = false; // 服务器端渲染
+
 import Layout from '@components/layout/Layout.astro';
 import { getMilkRecords } from '@/services/milk.service';
 import { MilkingSessionLabels, isAbnormalSomaticCellCount } from '@/types/milk.types';

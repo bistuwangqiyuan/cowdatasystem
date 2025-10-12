@@ -2,6 +2,8 @@
 /**
  * 添加繁殖记录页面
  */
+export const prerender = false; // 服务器端渲染
+
 import Layout from '@components/layout/Layout.astro';
 
 const cowId = Astro.url.searchParams.get('cow_id') || undefined;

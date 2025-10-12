@@ -2,6 +2,8 @@
 /**
  * 繁殖管理页面
  */
+export const prerender = false; // 服务器端渲染
+
 import Layout from '@components/layout/Layout.astro';
 import { getBreedingRecords } from '@/services/breeding.service';
 import { BreedingStatusLabels, BreedingMethodLabels } from '@/types/breeding.types';
