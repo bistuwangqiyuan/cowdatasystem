@@ -56,6 +56,56 @@ recentMilkRecords.forEach(record => {
 const milkTrendData = Array.from(dailyMilkData.entries())
   .sort((a, b) => a[0].localeCompare(b[0]))
   .slice(-7); // 最近7天
+
+// 计算品种分布
+const breedLabels = {
+  holstein: '荷斯坦',
+  jersey: '娟姗',
+  other: '其他',
+};
+
+const breedMap = {};
+if (cows) {
+  cows.forEach(cow => {
+    breedMap[cow.breed] = (breedMap[cow.breed] || 0) + 1;
+  });
+}
+
+const breedDistribution = Object.entries(breedMap).map(([breed, count]) => {
+  const numCount = Number(count);
+  return {
+    breed,
+    count: numCount,
+    label: breedLabels[breed] || breed,
+    percentage: cows && cows.length > 0 ? ((numCount / cows.length) * 100).toFixed(1) : '0',
+  };
+});
+
+// 计算状态分布
+const statusLabels = {
+  active: '在养',
+  culled: '已淘汰',
+  sold: '已售出',
+  dead: '死亡',
+};
+
+const statusMap = {};
+if (cows) {
+  cows.forEach(cow => {
+    statusMap[cow.status] = (statusMap[cow.status] || 0) + 1;
+  });
+}
+
+const statusDistribution = Object.entries(statusMap).map(([status, count]) => {
+  const numCount = Number(count);
+  return {
+    status,
+    count: numCount,
+    label: statusLabels[status] || status,
+    percentage: cows && cows.length > 0 ? ((numCount / cows.length) * 100).toFixed(1) : '0',
+    colorClass: status === 'active' ? 'bg-green-500' : 'bg-gray-400',
+  };
+});
 ---
 
 <Layout title="数据分析">
@@ -138,36 +188,22 @@ const milkTrendData = Array.from(dailyMilkData.entries())
       <!-- 按品种统计 -->
       <div class="bg-white p-6 rounded-lg shadow">
         <h2 class="text-xl font-semibold mb-4">按品种分布</h2>
-        {cows && cows.length > 0 ? (
+        {breedDistribution.length > 0 ? (
           <div class="space-y-3">
-            {Object.entries(
-              cows.reduce((acc, cow) => {
-                acc[cow.breed] = (acc[cow.breed] || 0) + 1;
-                return acc;
-              }, {} as Record<string, number>)
-            ).map(([breed, count]) => {
-              const breedLabels: Record<string, string> = {
-                holstein: '荷斯坦',
-                jersey: '娟姗',
-                other: '其他',
-              };
-              const percentage = ((count / cows.length) * 100).toFixed(1);
-              
-              return (
-                <div>
-                  <div class="flex justify-between items-center mb-1">
-                    <span class="text-sm">{breedLabels[breed]}</span>
-                    <span class="text-sm font-semibold">{count} 头 ({percentage}%)</span>
-                  </div>
-                  <div class="w-full bg-gray-200 rounded-full h-3">
-                    <div
-                      class="bg-blue-500 h-3 rounded-full"
-                      style={`width: ${percentage}%`}
-                    ></div>
-                  </div>
+            {breedDistribution.map((item) => (
+              <div>
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-sm">{item.label}</span>
+                  <span class="text-sm font-semibold">{item.count} 头 ({item.percentage}%)</span>
                 </div>
-              );
-            })}
+                <div class="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    class="bg-blue-500 h-3 rounded-full"
+                    style={`width: ${item.percentage}%`}
+                  ></div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <div class="text-center py-8 text-gray-500">暂无数据</div>
@@ -177,38 +213,22 @@ const milkTrendData = Array.from(dailyMilkData.entries())
       <!-- 按状态统计 -->
       <div class="bg-white p-6 rounded-lg shadow">
         <h2 class="text-xl font-semibold mb-4">按状态分布</h2>
-        {cows && cows.length > 0 ? (
+        {statusDistribution.length > 0 ? (
           <div class="space-y-3">
-            {Object.entries(
-              cows.reduce((acc, cow) => {
-                acc[cow.status] = (acc[cow.status] || 0) + 1;
-                return acc;
-              }, {} as Record<string, number>)
-            ).map(([status, count]) => {
-              const statusLabels: Record<string, string> = {
-                active: '在养',
-                culled: '已淘汰',
-                sold: '已售出',
-                dead: '死亡',
-              };
-              const percentage = ((count / cows.length) * 100).toFixed(1);
-              const colorClass = status === 'active' ? 'bg-green-500' : 'bg-gray-400';
-              
-              return (
-                <div>
-                  <div class="flex justify-between items-center mb-1">
-                    <span class="text-sm">{statusLabels[status]}</span>
-                    <span class="text-sm font-semibold">{count} 头 ({percentage}%)</span>
-                  </div>
-                  <div class="w-full bg-gray-200 rounded-full h-3">
-                    <div
-                      class={`${colorClass} h-3 rounded-full`}
-                      style={`width: ${percentage}%`}
-                    ></div>
-                  </div>
+            {statusDistribution.map((item) => (
+              <div>
+                <div class="flex justify-between items-center mb-1">
+                  <span class="text-sm">{item.label}</span>
+                  <span class="text-sm font-semibold">{item.count} 头 ({item.percentage}%)</span>
                 </div>
-              );
-            })}
+                <div class="w-full bg-gray-200 rounded-full h-3">
+                  <div
+                    class={`${item.colorClass} h-3 rounded-full`}
+                    style={`width: ${item.percentage}%`}
+                  ></div>
+                </div>
+              </div>
+            ))}
           </div>
         ) : (
           <div class="text-center py-8 text-gray-500">暂无数据</div>
