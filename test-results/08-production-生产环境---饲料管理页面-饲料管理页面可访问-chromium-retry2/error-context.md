@@ -1,0 +1,78 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - text: "xl: 1280px - 1535px"
+  - banner [ref=e2]:
+    - generic [ref=e4]:
+      - link "奶牛管理系统" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - img [ref=e7]
+        - heading "奶牛管理系统" [level=1] [ref=e9]
+      - navigation [ref=e10]:
+        - link "奶牛档案" [ref=e11] [cursor=pointer]:
+          - /url: /cows
+        - link "健康记录" [ref=e12] [cursor=pointer]:
+          - /url: /health
+        - link "产奶记录" [ref=e13] [cursor=pointer]:
+          - /url: /milk
+        - link "繁殖管理" [ref=e14] [cursor=pointer]:
+          - /url: /breeding
+        - link "饲料管理" [ref=e15] [cursor=pointer]:
+          - /url: /feed
+        - link "数据分析" [ref=e16] [cursor=pointer]:
+          - /url: /analytics
+      - generic [ref=e17]:
+        - button [ref=e18] [cursor=pointer]:
+          - img [ref=e19]
+        - button "U 用户" [ref=e22] [cursor=pointer]:
+          - generic [ref=e24]: U
+          - generic [ref=e25]: 用户
+          - img [ref=e26]
+  - main [ref=e28]:
+    - generic [ref=e29]:
+      - generic [ref=e30]:
+        - generic [ref=e31]:
+          - heading "饲料管理" [level=1] [ref=e32]
+          - paragraph [ref=e33]: 饲料配方和投喂记录管理
+        - generic [ref=e34]:
+          - link "+ 新建配方" [ref=e35] [cursor=pointer]:
+            - /url: /feed/formula/new
+          - link "+ 添加投喂记录" [ref=e36] [cursor=pointer]:
+            - /url: /feed/feeding/new
+      - generic [ref=e37]:
+        - navigation [ref=e39]:
+          - link "饲料配方" [ref=e40] [cursor=pointer]:
+            - /url: /feed?tab=formulas
+          - link "投喂记录" [ref=e41] [cursor=pointer]:
+            - /url: /feed?tab=records
+        - generic [ref=e44]:
+          - paragraph [ref=e45]: 暂无饲料配方
+          - link "点击创建第一个配方" [ref=e46] [cursor=pointer]:
+            - /url: /feed/formula/new
+  - contentinfo [ref=e47]:
+    - generic [ref=e48]:
+      - generic [ref=e49]:
+        - generic [ref=e50]:
+          - heading "关于系统" [level=3] [ref=e51]
+          - paragraph [ref=e52]: 奶牛实验数据管理系统帮助养殖场实现数字化管理，提升管理效率和科学决策能力。
+        - generic [ref=e53]:
+          - heading "快速链接" [level=3] [ref=e54]
+          - list [ref=e55]:
+            - listitem [ref=e56]:
+              - link "奶牛档案" [ref=e57] [cursor=pointer]:
+                - /url: /cows
+            - listitem [ref=e58]:
+              - link "数据分析" [ref=e59] [cursor=pointer]:
+                - /url: /analytics
+            - listitem [ref=e60]:
+              - link "帮助文档" [ref=e61] [cursor=pointer]:
+                - /url: /help
+        - generic [ref=e62]:
+          - heading "联系我们" [level=3] [ref=e63]
+          - list [ref=e64]:
+            - listitem [ref=e65]: "邮箱: support@example.com"
+            - listitem [ref=e66]: "电话: 400-xxx-xxxx"
+      - paragraph [ref=e68]: © 2025 奶牛实验数据管理系统. All rights reserved.
+  - region "通知"
+```

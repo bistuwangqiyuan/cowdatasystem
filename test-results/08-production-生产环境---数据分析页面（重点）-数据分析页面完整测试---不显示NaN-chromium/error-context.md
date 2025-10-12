@@ -1,0 +1,124 @@
+# Page snapshot
+
+```yaml
+- generic [active] [ref=e1]:
+  - text: "xl: 1280px - 1535px"
+  - banner [ref=e2]:
+    - generic [ref=e4]:
+      - link "奶牛管理系统" [ref=e6] [cursor=pointer]:
+        - /url: /
+        - img [ref=e7]
+        - heading "奶牛管理系统" [level=1] [ref=e9]
+      - navigation [ref=e10]:
+        - link "奶牛档案" [ref=e11] [cursor=pointer]:
+          - /url: /cows
+        - link "健康记录" [ref=e12] [cursor=pointer]:
+          - /url: /health
+        - link "产奶记录" [ref=e13] [cursor=pointer]:
+          - /url: /milk
+        - link "繁殖管理" [ref=e14] [cursor=pointer]:
+          - /url: /breeding
+        - link "饲料管理" [ref=e15] [cursor=pointer]:
+          - /url: /feed
+        - link "数据分析" [ref=e16] [cursor=pointer]:
+          - /url: /analytics
+      - generic [ref=e17]:
+        - button [ref=e18] [cursor=pointer]:
+          - img [ref=e19]
+        - button "U 用户" [ref=e22] [cursor=pointer]:
+          - generic [ref=e24]: U
+          - generic [ref=e25]: 用户
+          - img [ref=e26]
+  - main [ref=e28]:
+    - generic [ref=e29]:
+      - generic [ref=e30]:
+        - heading "数据分析" [level=1] [ref=e31]
+        - paragraph [ref=e32]: 养殖场数据统计和分析
+      - generic [ref=e33]:
+        - generic [ref=e34]:
+          - generic [ref=e35]: 奶牛总数
+          - generic [ref=e36]: "3"
+          - generic [ref=e37]: "在养: 3 头"
+        - generic [ref=e38]:
+          - generic [ref=e39]: 总产奶量
+          - generic [ref=e40]: 0L
+          - generic [ref=e41]: "平均: 0.0L/次"
+        - generic [ref=e42]:
+          - generic [ref=e43]: 健康记录
+          - generic [ref=e44]: "0"
+          - generic [ref=e45]: "异常率: 0.0%"
+        - generic [ref=e46]:
+          - generic [ref=e47]: 繁殖记录
+          - generic [ref=e48]: "6"
+          - generic [ref=e49]: "成功率: 0.0%"
+      - generic [ref=e50]:
+        - heading "近7天产奶趋势" [level=2] [ref=e51]
+        - generic [ref=e52]:
+          - generic [ref=e54]:
+            - generic [ref=e55]: 10/11
+            - generic [ref=e56]: NaN L
+          - generic [ref=e60]:
+            - generic [ref=e61]: 10/12
+            - generic [ref=e62]: NaN L
+      - generic [ref=e65]:
+        - generic [ref=e66]:
+          - heading "按品种分布" [level=2] [ref=e67]
+          - generic [ref=e68]:
+            - generic [ref=e70]:
+              - generic [ref=e71]: 荷斯坦
+              - generic [ref=e72]: 2 头 (66.7%)
+            - generic [ref=e76]:
+              - generic [ref=e77]: 娟姗
+              - generic [ref=e78]: 1 头 (33.3%)
+        - generic [ref=e81]:
+          - heading "按状态分布" [level=2] [ref=e82]
+          - generic [ref=e85]:
+            - generic [ref=e86]: 在养
+            - generic [ref=e87]: 3 头 (100.0%)
+      - generic [ref=e90]:
+        - link "🐄 奶牛档案 3 头" [ref=e91] [cursor=pointer]:
+          - /url: /cows
+          - generic [ref=e92]: 🐄
+          - generic [ref=e93]: 奶牛档案
+          - generic [ref=e94]: 3 头
+        - link "🏥 健康记录 0 条" [ref=e95] [cursor=pointer]:
+          - /url: /health
+          - generic [ref=e96]: 🏥
+          - generic [ref=e97]: 健康记录
+          - generic [ref=e98]: 0 条
+        - link "🥛 产奶记录 9 条" [ref=e99] [cursor=pointer]:
+          - /url: /milk
+          - generic [ref=e100]: 🥛
+          - generic [ref=e101]: 产奶记录
+          - generic [ref=e102]: 9 条
+        - link "💑 繁殖管理 6 条" [ref=e103] [cursor=pointer]:
+          - /url: /breeding
+          - generic [ref=e104]: 💑
+          - generic [ref=e105]: 繁殖管理
+          - generic [ref=e106]: 6 条
+  - contentinfo [ref=e107]:
+    - generic [ref=e108]:
+      - generic [ref=e109]:
+        - generic [ref=e110]:
+          - heading "关于系统" [level=3] [ref=e111]
+          - paragraph [ref=e112]: 奶牛实验数据管理系统帮助养殖场实现数字化管理，提升管理效率和科学决策能力。
+        - generic [ref=e113]:
+          - heading "快速链接" [level=3] [ref=e114]
+          - list [ref=e115]:
+            - listitem [ref=e116]:
+              - link "奶牛档案" [ref=e117] [cursor=pointer]:
+                - /url: /cows
+            - listitem [ref=e118]:
+              - link "数据分析" [ref=e119] [cursor=pointer]:
+                - /url: /analytics
+            - listitem [ref=e120]:
+              - link "帮助文档" [ref=e121] [cursor=pointer]:
+                - /url: /help
+        - generic [ref=e122]:
+          - heading "联系我们" [level=3] [ref=e123]
+          - list [ref=e124]:
+            - listitem [ref=e125]: "邮箱: support@example.com"
+            - listitem [ref=e126]: "电话: 400-xxx-xxxx"
+      - paragraph [ref=e128]: © 2025 奶牛实验数据管理系统. All rights reserved.
+  - region "通知"
+```

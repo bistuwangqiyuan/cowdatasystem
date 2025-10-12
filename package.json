@@ -11,6 +11,8 @@
     "test:unit": "vitest run --coverage",
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
+    "test:prod": "playwright test tests/e2e/08-production.spec.ts --config=playwright.config.prod.ts",
+    "test:prod:ui": "playwright test tests/e2e/08-production.spec.ts --config=playwright.config.prod.ts --ui",
     "lint": "eslint . --ext .js,.ts,.astro",
     "format": "prettier --write \"**/*.{js,ts,astro,json,md}\"",
     "supabase:start": "supabase start",

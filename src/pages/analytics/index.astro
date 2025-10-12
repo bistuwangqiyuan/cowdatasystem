@@ -20,7 +20,6 @@ const { data: breedingRecords } = await getBreedingRecords();
 // 计算统计数据
 const totalCows = cows?.length || 0;
 const activeCows = cows?.filter(c => c.status === 'active').length || 0;
-const femaleCows = cows?.filter(c => c.gender === 'female' && c.status === 'active').length || 0;
 
 const totalHealthRecords = healthRecords?.length || 0;
 const abnormalHealthRecords = healthRecords?.filter(r => isAbnormalHealth(r)).length || 0;
@@ -29,13 +28,13 @@ const abnormalHealthRate = totalHealthRecords > 0
   : '0.0';
 
 const totalMilkRecords = milkRecords?.length || 0;
-const totalMilkYield = milkRecords?.reduce((sum, r) => sum + r.milk_yield, 0) || 0;
+const totalMilkYield = (milkRecords || []).reduce((sum: number, r: any) => sum + (r.amount || 0), 0);
 const avgMilkYield = totalMilkRecords > 0 
   ? (totalMilkYield / totalMilkRecords).toFixed(1) 
   : '0.0';
 
 const totalBreedings = breedingRecords?.length || 0;
-const completedBreedings = breedingRecords?.filter(r => r.status === 'completed').length || 0;
+const completedBreedings = (breedingRecords || []).filter((r: any) => r.status === 'completed').length;
 const breedingSuccessRate = totalBreedings > 0 
   ? ((completedBreedings / totalBreedings) * 100).toFixed(1) 
   : '0.0';
@@ -44,15 +43,15 @@ const breedingSuccessRate = totalBreedings > 0
 const thirtyDaysAgo = new Date();
 thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-const recentMilkRecords = milkRecords?.filter(r => 
+const recentMilkRecords = (milkRecords || []).filter((r: any) => 
   new Date(r.recorded_datetime) >= thirtyDaysAgo
-) || [];
+);
 
 // 按日期分组
 const dailyMilkData = new Map<string, number>();
-recentMilkRecords.forEach(record => {
+recentMilkRecords.forEach((record: any) => {
   const date = record.recorded_datetime.split('T')[0];
-  dailyMilkData.set(date, (dailyMilkData.get(date) || 0) + record.milk_yield);
+  dailyMilkData.set(date, (dailyMilkData.get(date) || 0) + (record.amount || 0));
 });
 
 const milkTrendData = Array.from(dailyMilkData.entries())
@@ -60,13 +59,13 @@ const milkTrendData = Array.from(dailyMilkData.entries())
   .slice(-7); // 最近7天
 
 // 计算品种分布
-const breedLabels = {
+const breedLabels: Record<string, string> = {
   holstein: '荷斯坦',
   jersey: '娟姗',
   other: '其他',
 };
 
-const breedMap = {};
+const breedMap: Record<string, number> = {};
 if (cows) {
   cows.forEach(cow => {
     breedMap[cow.breed] = (breedMap[cow.breed] || 0) + 1;
@@ -84,14 +83,14 @@ const breedDistribution = Object.entries(breedMap).map(([breed, count]) => {
 });
 
 // 计算状态分布
-const statusLabels = {
+const statusLabels: Record<string, string> = {
   active: '在养',
   culled: '已淘汰',
   sold: '已售出',
   dead: '死亡',
 };
 
-const statusMap = {};
+const statusMap: Record<string, number> = {};
 if (cows) {
   cows.forEach(cow => {
     statusMap[cow.status] = (statusMap[cow.status] || 0) + 1;
