@@ -22,9 +22,9 @@ SET
     END,
   session = 
     CASE 
-      WHEN EXTRACT(HOUR FROM recorded_datetime) < 10 THEN 'morning'
-      WHEN EXTRACT(HOUR FROM recorded_datetime) < 16 THEN 'afternoon'
-      ELSE 'evening'
+      WHEN EXTRACT(HOUR FROM recorded_datetime) < 10 THEN 'morning'::milking_session
+      WHEN EXTRACT(HOUR FROM recorded_datetime) < 16 THEN 'afternoon'::milking_session
+      ELSE 'evening'::milking_session
     END,
   fat_rate = 
     CASE 
