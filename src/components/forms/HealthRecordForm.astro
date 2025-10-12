@@ -1,228 +1,344 @@
 ---
 /**
- * Health Record Form Component
- * 
- * 健康记录表单组件，用于创建和编辑健康记录。
+ * 健康记录表单组件
+ * 用于创建和编辑健康记录
  */
-
 import type { HealthRecord } from '@/types/health.types';
-import { HEALTH_STATUS_NAMES } from '@/types/health.types';
 
 interface Props {
   record?: HealthRecord;
-  mode: 'create' | 'edit';
   cowId?: string;
+  mode: 'create' | 'edit';
 }
 
-const { record, mode, cowId } = Astro.props;
-const isEdit = mode === 'edit';
+const { record, cowId, mode } = Astro.props;
 ---
 
-<form id="health-form" class="space-y-6">
-  <!-- 奶牛ID（隐藏字段或只读） -->
-  <input type="hidden" name="cow_id" value={cowId || record?.cow_id || ''} />
-
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-    <!-- 记录日期 -->
+<form id="health-record-form" class="space-y-4">
+  <!-- 奶牛选择 (仅创建模式显示) -->
+  {mode === 'create' && !cowId && (
     <div>
-      <label for="recorded_date" class="block text-sm font-medium text-gray-700 mb-2">
-        记录日期 <span class="text-red-500">*</span>
+      <label for="cow_id" class="block text-sm font-medium mb-1">
+        选择奶牛 <span class="text-red-500">*</span>
       </label>
-      <input
-        type="date"
-        id="recorded_date"
-        name="recorded_date"
-        value={record?.recorded_date || new Date().toISOString().split('T')[0]}
+      <select
+        id="cow_id"
+        name="cow_id"
         required
-        max={new Date().toISOString().split('T')[0]}
-        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-      />
+        class="w-full h-12 px-4 border rounded-lg"
+      >
+        <option value="">请选择奶牛</option>
+        <!-- 奶牛列表将通过JavaScript动态加载 -->
+      </select>
     </div>
+  )}
 
-    <!-- 体温 -->
+  {(cowId || mode === 'edit') && (
+    <input 
+      type="hidden" 
+      name="cow_id" 
+      value={cowId || record?.cow_id} 
+    />
+  )}
+
+  <!-- 检查日期时间 -->
+  <div>
+    <label for="check_datetime" class="block text-sm font-medium mb-1">
+      检查时间 <span class="text-red-500">*</span>
+    </label>
+    <input
+      type="datetime-local"
+      id="check_datetime"
+      name="check_datetime"
+      value={record?.check_datetime?.slice(0, 16) || ''}
+      max={new Date().toISOString().slice(0, 16)}
+      required
+      class="w-full h-12 px-4 border rounded-lg"
+    />
+  </div>
+
+  <!-- 体温 -->
+  <div>
+    <label for="temperature" class="block text-sm font-medium mb-1">
+      体温 (°C) <span class="text-red-500">*</span>
+    </label>
+    <input
+      type="number"
+      id="temperature"
+      name="temperature"
+      value={record?.temperature || ''}
+      step="0.1"
+      min="35.0"
+      max="45.0"
+      required
+      class="w-full h-12 px-4 border rounded-lg"
+      placeholder="正常范围: 38.0-39.5"
+    />
+    <p class="text-xs text-gray-500 mt-1">正常范围: 38.0-39.5°C</p>
+  </div>
+
+  <!-- 精神状态 -->
+  <div>
+    <label class="block text-sm font-medium mb-1">
+      精神状态 <span class="text-red-500">*</span>
+    </label>
+    <div class="flex gap-4">
+      <label class="flex items-center">
+        <input
+          type="radio"
+          name="mental_state"
+          value="normal"
+          checked={record?.mental_state === 'normal' || !record}
+          required
+          class="mr-2 w-5 h-5"
+        />
+        正常
+      </label>
+      <label class="flex items-center">
+        <input
+          type="radio"
+          name="mental_state"
+          value="depressed"
+          checked={record?.mental_state === 'depressed'}
+          class="mr-2 w-5 h-5"
+        />
+        沉郁
+      </label>
+      <label class="flex items-center">
+        <input
+          type="radio"
+          name="mental_state"
+          value="excited"
+          checked={record?.mental_state === 'excited'}
+          class="mr-2 w-5 h-5"
+        />
+        兴奋
+      </label>
+    </div>
+  </div>
+
+  <!-- 食欲 -->
+  <div>
+    <label class="block text-sm font-medium mb-1">
+      食欲 <span class="text-red-500">*</span>
+    </label>
+    <div class="flex gap-4">
+      <label class="flex items-center">
+        <input
+          type="radio"
+          name="appetite"
+          value="good"
+          checked={record?.appetite === 'good' || !record}
+          required
+          class="mr-2 w-5 h-5"
+        />
+        良好
+      </label>
+      <label class="flex items-center">
+        <input
+          type="radio"
+          name="appetite"
+          value="normal"
+          checked={record?.appetite === 'normal'}
+          class="mr-2 w-5 h-5"
+        />
+        一般
+      </label>
+      <label class="flex items-center">
+        <input
+          type="radio"
+          name="appetite"
+          value="poor"
+          checked={record?.appetite === 'poor'}
+          class="mr-2 w-5 h-5"
+        />
+        较差
+      </label>
+    </div>
+  </div>
+
+  <!-- 可选生理指标 -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <!-- 呼吸频率 -->
     <div>
-      <label for="temperature" class="block text-sm font-medium text-gray-700 mb-2">
-        体温 (°C)
+      <label for="respiratory_rate" class="block text-sm font-medium mb-1">
+        呼吸频率 (次/分)
       </label>
       <input
         type="number"
-        id="temperature"
-        name="temperature"
-        value={record?.temperature || ''}
-        step="0.1"
-        min="35"
-        max="45"
-        placeholder="例如: 38.5"
-        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        id="respiratory_rate"
+        name="respiratory_rate"
+        value={record?.respiratory_rate || ''}
+        min="0"
+        class="w-full h-12 px-4 border rounded-lg"
+        placeholder="正常: 15-35"
       />
-      <p class="text-xs text-gray-500 mt-1">正常范围: 37.5-39.5°C</p>
     </div>
 
-    <!-- 精神状态 -->
+    <!-- 心率 -->
     <div>
-      <label for="mental_status" class="block text-sm font-medium text-gray-700 mb-2">
-        精神状态
-      </label>
-      <select
-        id="mental_status"
-        name="mental_status"
-        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-      >
-        <option value="">请选择</option>
-        {Object.entries(HEALTH_STATUS_NAMES).map(([value, label]) => (
-          <option value={value} selected={record?.mental_status === value}>
-            {label}
-          </option>
-        ))}
-      </select>
-    </div>
-
-    <!-- 食欲 -->
-    <div>
-      <label for="appetite" class="block text-sm font-medium text-gray-700 mb-2">
-        食欲
-      </label>
-      <select
-        id="appetite"
-        name="appetite"
-        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
-      >
-        <option value="">请选择</option>
-        {Object.entries(HEALTH_STATUS_NAMES).map(([value, label]) => (
-          <option value={value} selected={record?.appetite === value}>
-            {label}
-          </option>
-        ))}
-      </select>
-    </div>
-
-    <!-- 粪便状况 -->
-    <div class="md:col-span-2">
-      <label for="fecal_condition" class="block text-sm font-medium text-gray-700 mb-2">
-        粪便状况
+      <label for="heart_rate" class="block text-sm font-medium mb-1">
+        心率 (次/分)
       </label>
       <input
-        type="text"
-        id="fecal_condition"
-        name="fecal_condition"
-        value={record?.fecal_condition || ''}
-        placeholder="例如: 正常、偏干、偏稀等"
-        maxlength="200"
-        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+        type="number"
+        id="heart_rate"
+        name="heart_rate"
+        value={record?.heart_rate || ''}
+        min="0"
+        class="w-full h-12 px-4 border rounded-lg"
+        placeholder="正常: 60-80"
+      />
+    </div>
+
+    <!-- 瘤胃蠕动频率 -->
+    <div class="md:col-span-2">
+      <label for="rumen_movement" class="block text-sm font-medium mb-1">
+        瘤胃蠕动频率 (次/2分钟)
+      </label>
+      <input
+        type="number"
+        id="rumen_movement"
+        name="rumen_movement"
+        value={record?.rumen_movement || ''}
+        min="0"
+        class="w-full h-12 px-4 border rounded-lg"
+        placeholder="正常: 4-10"
       />
     </div>
   </div>
 
-  <!-- 症状 -->
+  <!-- 粪便性状 -->
   <div>
-    <label for="symptoms" class="block text-sm font-medium text-gray-700 mb-2">
-      症状描述
+    <label for="fecal_condition" class="block text-sm font-medium mb-1">
+      粪便性状
     </label>
-    <textarea
-      id="symptoms"
-      name="symptoms"
-      rows="4"
-      placeholder="记录观察到的异常症状..."
-      maxlength="1000"
-      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent resize-none"
-    >{record?.symptoms || ''}</textarea>
-    <p class="text-xs text-gray-500 mt-1">最多1000字</p>
+    <input
+      type="text"
+      id="fecal_condition"
+      name="fecal_condition"
+      value={record?.fecal_condition || ''}
+      class="w-full h-12 px-4 border rounded-lg"
+      placeholder="例如：正常、稀软、干硬"
+    />
   </div>
 
-  <!-- 错误提示 -->
-  <div id="form-error" class="hidden bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg text-sm"></div>
+  <!-- 健康问题 -->
+  <div>
+    <label for="health_issues" class="block text-sm font-medium mb-1">
+      健康问题
+    </label>
+    <textarea
+      id="health_issues"
+      name="health_issues"
+      rows="3"
+      class="w-full px-4 py-2 border rounded-lg"
+      placeholder="记录发现的健康问题..."
+    >{record?.health_issues || ''}</textarea>
+  </div>
 
-  <!-- 按钮组 -->
-  <div class="flex justify-end space-x-4 pt-4">
-    <button
-      type="button"
-      id="cancel-btn"
-      class="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
-    >
-      取消
-    </button>
+  <!-- 处理措施 -->
+  <div>
+    <label for="treatment" class="block text-sm font-medium mb-1">
+      处理措施
+    </label>
+    <textarea
+      id="treatment"
+      name="treatment"
+      rows="3"
+      class="w-full px-4 py-2 border rounded-lg"
+      placeholder="采取的处理措施..."
+    >{record?.treatment || ''}</textarea>
+  </div>
+
+  <!-- 备注 -->
+  <div>
+    <label for="notes" class="block text-sm font-medium mb-1">
+      备注
+    </label>
+    <textarea
+      id="notes"
+      name="notes"
+      rows="2"
+      class="w-full px-4 py-2 border rounded-lg"
+      placeholder="其他补充信息..."
+    >{record?.notes || ''}</textarea>
+  </div>
+
+  <!-- 提交按钮 -->
+  <div class="flex gap-4">
     <button
       type="submit"
-      id="submit-btn"
-      class="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+      class="flex-1 min-h-[44px] bg-blue-600 text-white rounded-lg hover:bg-blue-700"
     >
-      {isEdit ? '保存' : '创建'}
+      {mode === 'create' ? '添加记录' : '保存修改'}
     </button>
+    <a
+      href="/health"
+      class="flex-1 min-h-[44px] flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50"
+    >
+      取消
+    </a>
   </div>
 </form>
 
 <script>
   import { createHealthRecord, updateHealthRecord } from '@/services/health.service';
-  import { validateDate, validateTemperature } from '@/lib/validation';
-  
-  const form = document.getElementById('health-form') as HTMLFormElement;
-  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
-  const cancelBtn = document.getElementById('cancel-btn') as HTMLButtonElement;
-  const formError = document.getElementById('form-error') as HTMLDivElement;
-  
-  const urlParams = new URLSearchParams(window.location.search);
-  const mode = urlParams.get('mode') || 'create';
-  const recordId = urlParams.get('id');
-  
-  form?.addEventListener('submit', async (e) => {
+  import { getCows } from '@/services/cows.service';
+
+  const form = document.getElementById('health-record-form') as HTMLFormElement;
+  const mode = form.dataset.mode || 'create';
+  const recordId = form.dataset.recordId;
+
+  // 如果是创建模式且没有预选奶牛，加载奶牛列表
+  const cowSelect = document.getElementById('cow_id') as HTMLSelectElement;
+  if (cowSelect) {
+    (async () => {
+      const { data: cows } = await getCows();
+      if (cows) {
+        cows.forEach(cow => {
+          const option = document.createElement('option');
+          option.value = cow.id;
+          option.textContent = `${cow.cow_number} - ${cow.name || '未命名'}`;
+          cowSelect.appendChild(option);
+        });
+      }
+    })();
+  }
+
+  form.addEventListener('submit', async (e) => {
     e.preventDefault();
-    
-    formError?.classList.add('hidden');
     
     const formData = new FormData(form);
     const data: any = {};
     
     formData.forEach((value, key) => {
-      if (value !== '') {
-        if (key === 'temperature') {
-          data[key] = parseFloat(value as string);
+      if (value !== '' && value !== null) {
+        if (key === 'temperature' || key === 'respiratory_rate' || key === 'heart_rate' || key === 'rumen_movement') {
+          data[key] = Number(value);
         } else {
           data[key] = value;
         }
       }
     });
-    
-    // 验证
-    if (data.temperature) {
-      const tempValidation = validateTemperature(data.temperature);
-      if (!tempValidation.isValid) {
-        formError.textContent = tempValidation.error || '体温数据无效';
-        formError.classList.remove('hidden');
-        return;
-      }
-    }
-    
-    submitBtn.classList.add('loading');
-    submitBtn.textContent = mode === 'edit' ? '保存中...' : '创建中...';
-    
+
+    // 添加检查人员ID (当前用户)
+    data.examiner_id = (await import('@/lib/supabase')).supabase.auth.getUser().then(r => r.data.user?.id);
+
     try {
-      let result;
-      
-      if (mode === 'edit' && recordId) {
-        result = await updateHealthRecord(recordId, data);
+      if (mode === 'create') {
+        const result = await createHealthRecord(data);
+        if (result.error) throw result.error;
+        alert('健康记录添加成功！');
+        window.location.href = '/health';
       } else {
-        result = await createHealthRecord(data);
+        const result = await updateHealthRecord(recordId!, data);
+        if (result.error) throw result.error;
+        alert('健康记录保存成功！');
+        window.location.href = `/health/${recordId}`;
       }
-      
-      if (result.error) {
-        throw new Error(result.error.message || '操作失败');
-      }
-      
-      const cowId = data.cow_id;
-      window.location.href = cowId ? `/cows/${cowId}` : '/health';
-      
     } catch (error: any) {
-      formError.textContent = error.message || '操作失败，请重试';
-      formError.classList.remove('hidden');
-      
-      submitBtn.classList.remove('loading');
-      submitBtn.textContent = mode === 'edit' ? '保存' : '创建';
+      alert(`操作失败：${error.message}`);
     }
-  });
-  
-  cancelBtn?.addEventListener('click', () => {
-    const cowId = new URLSearchParams(window.location.search).get('cow_id');
-    window.location.href = cowId ? `/cows/${cowId}` : '/health';
   });
 </script>
-

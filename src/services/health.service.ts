@@ -1,179 +1,252 @@
 /**
- * Health Records Service
- * 
- * 健康记录数据服务层。
+ * 健康记录服务层
+ * 封装所有健康记录相关的数据库操作
  * 
  * @module services/health.service
  */
 
 import { supabase } from '@/lib/supabase';
-import type { HealthRecord, HealthRecordFormData } from '@/types/health.types';
-import type { ServiceResponse } from './cows.service';
+import type { 
+  HealthRecord, 
+  HealthRecordFormData, 
+  HealthRecordFilters,
+  HealthStats,
+  HealthRecordDetail
+} from '@/types/health.types';
+import { isAbnormalHealth } from '@/types/health.types';
 
 /**
  * 创建健康记录
+ * @param data - 健康记录表单数据
+ * @returns Supabase 响应
+ * 
+ * @example
+ * const result = await createHealthRecord({
+ *   cow_id: 'uuid',
+ *   check_datetime: '2025-10-12T10:00:00',
+ *   temperature: 38.5,
+ *   mental_state: 'normal',
+ *   appetite: 'good',
+ *   examiner_id: 'user-uuid'
+ * });
  */
-export async function createHealthRecord(
-  data: HealthRecordFormData
-): Promise<ServiceResponse<HealthRecord>> {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      return { data: null, error: { message: '用户未登录' } };
-    }
-
-    const { data: record, error } = await supabase
-      .from('health_records')
-      .insert({
-        ...data,
-        created_by: user.id,
-        updated_by: user.id,
-      })
-      .select()
-      .single();
-
-    if (error) {
-      console.error('[HealthService] Create error:', error);
-      return { data: null, error };
-    }
-
-    console.log('[HealthService] Health record created:', record);
-    return { data: record, error: null };
-    
-  } catch (error) {
-    console.error('[HealthService] Create exception:', error);
-    return { data: null, error };
+export async function createHealthRecord(data: HealthRecordFormData) {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    return { data: null, error: { message: '用户未登录' } };
   }
+  
+  const { data: record, error } = await supabase
+    .from('health_records')
+    .insert({
+      ...data,
+      created_by: user.id,
+      updated_by: user.id,
+    })
+    .select()
+    .single();
+
+  return { data: record, error };
 }
 
 /**
  * 获取健康记录列表
+ * @param filters - 查询过滤器
+ * @returns Supabase 响应
+ * 
+ * @example
+ * // 获取指定奶牛的健康记录
+ * const result = await getHealthRecords({ cow_id: 'uuid' });
+ * 
+ * // 获取日期范围内的异常记录
+ * const result = await getHealthRecords({
+ *   start_date: '2025-10-01',
+ *   end_date: '2025-10-12',
+ *   abnormal_only: true
+ * });
  */
-export async function getHealthRecords(
-  cowId?: string
-): Promise<ServiceResponse<HealthRecord[]>> {
-  try {
-    let query = supabase
-      .from('health_records')
-      .select('*')
-      .is('deleted_at', null)
-      .order('recorded_date', { ascending: false });
+export async function getHealthRecords(filters?: HealthRecordFilters) {
+  let query = supabase
+    .from('health_records')
+    .select('*')
+    .is('deleted_at', null)
+    .order('check_datetime', { ascending: false });
 
-    if (cowId) {
-      query = query.eq('cow_id', cowId);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      console.error('[HealthService] GetRecords error:', error);
-      return { data: null, error };
-    }
-
-    return { data, error: null };
-    
-  } catch (error) {
-    console.error('[HealthService] GetRecords exception:', error);
-    return { data: null, error };
+  // 按奶牛ID过滤
+  if (filters?.cow_id) {
+    query = query.eq('cow_id', filters.cow_id);
   }
+
+  // 按日期范围过滤
+  if (filters?.start_date) {
+    query = query.gte('check_datetime', filters.start_date);
+  }
+  if (filters?.end_date) {
+    query = query.lte('check_datetime', filters.end_date);
+  }
+
+  // 按检查人员过滤
+  if (filters?.examiner_id) {
+    query = query.eq('examiner_id', filters.examiner_id);
+  }
+
+  // 按精神状态过滤
+  if (filters?.mental_state) {
+    query = query.eq('mental_state', filters.mental_state);
+  }
+
+  const { data, error } = await query;
+
+  // 仅显示异常记录
+  if (filters?.abnormal_only && data) {
+    const abnormalRecords = data.filter(record => isAbnormalHealth(record));
+    return { data: abnormalRecords, error };
+  }
+
+  return { data, error };
 }
 
 /**
- * 获取单条健康记录
+ * 根据ID获取健康记录详情 (含关联信息)
+ * @param id - 健康记录ID
+ * @returns Supabase 响应
  */
-export async function getHealthRecordById(
-  id: string
-): Promise<ServiceResponse<HealthRecord>> {
-  try {
-    const { data, error } = await supabase
-      .from('health_records')
-      .select('*')
-      .eq('id', id)
-      .is('deleted_at', null)
-      .single();
+export async function getHealthRecordById(id: string) {
+  const { data, error } = await supabase
+    .from('health_records')
+    .select(`
+      *,
+      cow:cows!inner(id, cow_number, name, breed),
+      examiner:users!health_records_examiner_id_fkey(id, full_name, role)
+    `)
+    .eq('id', id)
+    .is('deleted_at', null)
+    .single<HealthRecordDetail>();
 
-    if (error) {
-      console.error('[HealthService] GetById error:', error);
-      return { data: null, error };
-    }
-
-    return { data, error: null };
-    
-  } catch (error) {
-    console.error('[HealthService] GetById exception:', error);
-    return { data: null, error };
-  }
+  return { data, error };
 }
 
 /**
  * 更新健康记录
+ * @param id - 健康记录ID
+ * @param data - 更新的数据
+ * @returns Supabase 响应
  */
-export async function updateHealthRecord(
-  id: string,
-  data: Partial<HealthRecordFormData>
-): Promise<ServiceResponse<HealthRecord>> {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      return { data: null, error: { message: '用户未登录' } };
-    }
-
-    const { data: record, error } = await supabase
-      .from('health_records')
-      .update({
-        ...data,
-        updated_by: user.id,
-      })
-      .eq('id', id)
-      .select()
-      .single();
-
-    if (error) {
-      console.error('[HealthService] Update error:', error);
-      return { data: null, error };
-    }
-
-    return { data: record, error: null };
-    
-  } catch (error) {
-    console.error('[HealthService] Update exception:', error);
-    return { data: null, error };
+export async function updateHealthRecord(id: string, data: Partial<HealthRecordFormData>) {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    return { data: null, error: { message: '用户未登录' } };
   }
+  
+  const { data: record, error } = await supabase
+    .from('health_records')
+    .update({
+      ...data,
+      updated_by: user.id,
+    })
+    .eq('id', id)
+    .select()
+    .single();
+
+  return { data: record, error };
 }
 
 /**
- * 删除健康记录（软删除）
+ * 删除健康记录 (软删除)
+ * @param id - 健康记录ID
+ * @returns Supabase 响应
  */
-export async function deleteHealthRecord(
-  id: string
-): Promise<ServiceResponse<null>> {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      return { data: null, error: { message: '用户未登录' } };
-    }
-
-    const { error } = await supabase
-      .from('health_records')
-      .update({
-        deleted_at: new Date().toISOString(),
-        updated_by: user.id,
-      })
-      .eq('id', id);
-
-    if (error) {
-      console.error('[HealthService] Delete error:', error);
-      return { data: null, error };
-    }
-
-    return { data: null, error: null };
-    
-  } catch (error) {
-    console.error('[HealthService] Delete exception:', error);
-    return { data: null, error };
+export async function deleteHealthRecord(id: string) {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    return { data: null, error: { message: '用户未登录' } };
   }
+  
+  const { error } = await supabase
+    .from('health_records')
+    .update({
+      deleted_at: new Date().toISOString(),
+      updated_by: user.id,
+    })
+    .eq('id', id);
+
+  return { error };
 }
 
+/**
+ * 获取健康统计数据
+ * @param cowId - 奶牛ID
+ * @param startDate - 开始日期 (可选)
+ * @param endDate - 结束日期 (可选)
+ * @returns 健康统计数据
+ * 
+ * @example
+ * // 获取指定奶牛的健康统计
+ * const stats = await getHealthStats('cow-uuid', '2025-10-01', '2025-10-12');
+ */
+export async function getHealthStats(
+  cowId: string, 
+  startDate?: string, 
+  endDate?: string
+): Promise<HealthStats> {
+  let query = supabase
+    .from('health_records')
+    .select('*')
+    .eq('cow_id', cowId)
+    .is('deleted_at', null);
+
+  if (startDate) query = query.gte('check_datetime', startDate);
+  if (endDate) query = query.lte('check_datetime', endDate);
+
+  const { data, error } = await query;
+
+  if (error || !data) {
+    return {
+      total_records: 0,
+      abnormal_records: 0,
+      avg_temperature: 0,
+      max_temperature: 0,
+      min_temperature: 0,
+    };
+  }
+
+  // 计算统计数据
+  const temperatures = data.map(r => r.temperature);
+  const abnormalRecords = data.filter(r => isAbnormalHealth(r));
+
+  const stats: HealthStats = {
+    total_records: data.length,
+    abnormal_records: abnormalRecords.length,
+    avg_temperature: temperatures.reduce((sum, t) => sum + t, 0) / temperatures.length,
+    max_temperature: Math.max(...temperatures),
+    min_temperature: Math.min(...temperatures),
+  };
+
+  // 最近一次检查日期
+  if (data.length > 0) {
+    stats.last_check_date = data[0].check_datetime;
+  }
+
+  return stats;
+}
+
+/**
+ * 获取指定奶牛的最近N条健康记录
+ * @param cowId - 奶牛ID
+ * @param limit - 记录数量
+ * @returns Supabase 响应
+ */
+export async function getRecentHealthRecords(cowId: string, limit: number = 7) {
+  const { data, error } = await supabase
+    .from('health_records')
+    .select('*')
+    .eq('cow_id', cowId)
+    .is('deleted_at', null)
+    .order('check_datetime', { ascending: false })
+    .limit(limit);
+
+  return { data, error };
+}
