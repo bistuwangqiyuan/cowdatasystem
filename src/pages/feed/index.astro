@@ -1,0 +1,174 @@
+---
+import Layout from '../../components/layout/Layout.astro';
+
+const title = '饲料管理';
+---
+
+<Layout title={title}>
+  <div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <!-- 页面标题 -->
+      <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900">{title}</h1>
+        <p class="mt-2 text-sm text-gray-600">
+          管理饲料配方和饲喂记录，优化奶牛营养方案
+        </p>
+      </div>
+
+      <!-- 标签页 -->
+      <div class="border-b border-gray-200 mb-6">
+        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+          <a
+            href="#formulas"
+            class="border-indigo-500 text-indigo-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+          >
+            饲料配方
+          </a>
+          <a
+            href="#records"
+            class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+          >
+            饲喂记录
+          </a>
+        </nav>
+      </div>
+
+      <!-- 饲料配方区域 -->
+      <div id="formulas" class="mb-8">
+        <div class="mb-6 flex justify-between items-center">
+          <h2 class="text-xl font-semibold text-gray-900">饲料配方</h2>
+          <button
+            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            <svg class="mr-2 -ml-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            新增配方
+          </button>
+        </div>
+
+        <!-- 配方列表 -->
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <!-- 示例配方卡片 -->
+          <div class="bg-white overflow-hidden shadow rounded-lg">
+            <div class="p-5">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-medium text-gray-900">示例配方</h3>
+                <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                  在用
+                </span>
+              </div>
+              <div class="space-y-2">
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-500">能量:</span>
+                  <span class="font-medium">-- MJ/kg</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-500">蛋白质:</span>
+                  <span class="font-medium">-- %</span>
+                </div>
+                <div class="flex justify-between text-sm">
+                  <span class="text-gray-500">纤维:</span>
+                  <span class="font-medium">-- %</span>
+                </div>
+              </div>
+              <div class="mt-4 flex gap-2">
+                <button class="flex-1 px-3 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100">
+                  查看详情
+                </button>
+                <button class="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
+                  编辑
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- 空状态 -->
+          <div class="bg-white overflow-hidden shadow rounded-lg col-span-full">
+            <div class="p-12 text-center">
+              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">暂无饲料配方</h3>
+              <p class="mt-1 text-sm text-gray-500">开始创建您的第一个饲料配方</p>
+              <div class="mt-6">
+                <button
+                  class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  <svg class="mr-2 -ml-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                  新增配方
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 饲喂记录区域 -->
+      <div id="records">
+        <div class="mb-6 flex justify-between items-center">
+          <h2 class="text-xl font-semibold text-gray-900">饲喂记录</h2>
+          <button
+            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+          >
+            <svg class="mr-2 -ml-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            记录饲喂
+          </button>
+        </div>
+
+        <!-- 记录列表 -->
+        <div class="bg-white shadow overflow-hidden sm:rounded-md">
+          <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+            <h3 class="text-lg leading-6 font-medium text-gray-900">最近记录</h3>
+          </div>
+          <div class="bg-white px-4 py-5 sm:p-6">
+            <div class="text-center py-12">
+              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              <h3 class="mt-2 text-sm font-medium text-gray-900">暂无饲喂记录</h3>
+              <p class="mt-1 text-sm text-gray-500">开始记录每日饲喂情况</p>
+              <div class="mt-6">
+                <button
+                  class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                >
+                  <svg class="mr-2 -ml-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                  </svg>
+                  记录饲喂
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 说明信息 -->
+      <div class="mt-8 bg-blue-50 border border-blue-200 rounded-md p-4">
+        <div class="flex">
+          <div class="flex-shrink-0">
+            <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <div class="ml-3">
+            <h3 class="text-sm font-medium text-blue-800">饲料管理功能</h3>
+            <div class="mt-2 text-sm text-blue-700">
+              <ul class="list-disc pl-5 space-y-1">
+                <li>创建和管理多种饲料配方</li>
+                <li>记录每日饲喂量和时间</li>
+                <li>分析饲料成本和营养效果</li>
+                <li>根据奶牛阶段自动推荐配方</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</Layout>
+
