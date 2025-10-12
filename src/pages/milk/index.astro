@@ -1,98 +1,195 @@
 ---
 /**
- * Milk Records List Page
- * 
- * 产奶记录列表页面。
+ * 产奶记录列表页面
  */
-
 import Layout from '@components/layout/Layout.astro';
 import { getMilkRecords } from '@/services/milk.service';
-import { MILKING_SESSION_NAMES, MILKING_SESSION_COLORS } from '@/types/milk.types';
+import { MilkingSessionLabels, isAbnormalSomaticCellCount } from '@/types/milk.types';
 
-export const prerender = false;
+// 获取查询参数
+const cowId = Astro.url.searchParams.get('cow_id');
+const session = Astro.url.searchParams.get('session');
+const abnormalOnly = Astro.url.searchParams.get('abnormal') === 'true';
 
-const { data: records, error } = await getMilkRecords();
+// 获取产奶记录
+const { data: records, error } = await getMilkRecords({
+  cow_id: cowId || undefined,
+  milking_session: session as any,
+  abnormal_only: abnormalOnly,
+});
+
+if (error) {
+  console.error('Failed to load milk records:', error);
+}
 ---
 
 <Layout title="产奶记录">
-  <div class="max-w-7xl mx-auto">
-    <div class="flex justify-between items-center mb-6">
+  <div class="space-y-6">
+    <!-- 页面头部 -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900">产奶记录</h1>
-        <p class="text-gray-600 mt-1">管理奶牛的产奶数据</p>
+        <h1 class="text-2xl md:text-3xl font-bold">产奶记录管理</h1>
+        <p class="text-gray-600 mt-1">奶牛挤奶产量和质量数据</p>
       </div>
-      <a 
-        href="/milk/new" 
-        class="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors shadow-md flex items-center space-x-2"
+      <a
+        href="/milk/new"
+        class="w-full md:w-auto min-h-[44px] px-6 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center"
       >
-        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-        </svg>
-        <span>添加记录</span>
+        + 添加产奶记录
       </a>
     </div>
 
-    {error && (
-      <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-        加载失败：{error.message || '未知错误'}
-      </div>
-    )}
+    <!-- 筛选栏 -->
+    <div class="bg-white p-4 rounded-lg shadow">
+      <form method="get" class="flex flex-col md:flex-row gap-4">
+        <div class="flex-1">
+          <label for="session" class="block text-sm font-medium mb-1">挤奶时段</label>
+          <select
+            id="session"
+            name="session"
+            class="w-full h-12 px-4 border rounded-lg"
+          >
+            <option value="">全部时段</option>
+            <option value="morning" selected={session === 'morning'}>早班</option>
+            <option value="afternoon" selected={session === 'afternoon'}>午班</option>
+            <option value="evening" selected={session === 'evening'}>晚班</option>
+          </select>
+        </div>
+        <div class="flex-1 flex items-end">
+          <label class="flex items-center">
+            <input
+              type="checkbox"
+              name="abnormal"
+              value="true"
+              checked={abnormalOnly}
+              class="mr-2 w-5 h-5"
+            />
+            仅显示异常记录
+          </label>
+        </div>
+        <div class="flex gap-2">
+          <button
+            type="submit"
+            class="min-w-[80px] min-h-[44px] bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+          >
+            筛选
+          </button>
+          <a
+            href="/milk"
+            class="min-w-[80px] min-h-[44px] flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            重置
+          </a>
+        </div>
+      </form>
+    </div>
 
-    {!error && (!records || records.length === 0) && (
-      <div class="bg-gray-50 rounded-lg p-12 text-center">
-        <p class="text-gray-600 text-lg mb-4">还没有产奶记录</p>
-        <a 
-          href="/milk/new" 
-          class="inline-block bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700"
-        >
-          添加第一条记录
-        </a>
-      </div>
-    )}
-
-    {!error && records && records.length > 0 && (
-      <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <table class="w-full">
-          <thead class="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">记录时间</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">班次</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">产量(升)</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">脂肪率(%)</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">蛋白质率(%)</th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">操作</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            {records.map((record) => (
-              <tr class="hover:bg-gray-50">
-                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                  {new Date(record.recorded_datetime).toLocaleString('zh-CN')}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  <span class={`px-2 py-1 text-xs font-semibold rounded-full ${MILKING_SESSION_COLORS[record.session]}`}>
-                    {MILKING_SESSION_NAMES[record.session]}
-                  </span>
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                  {record.amount.toFixed(1)}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                  {record.fat_rate ? record.fat_rate.toFixed(2) : '-'}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                  {record.protein_rate ? record.protein_rate.toFixed(2) : '-'}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm space-x-2">
-                  <a href={`/milk/${record.id}`} class="text-primary-600 hover:text-primary-800">查看</a>
-                  <a href={`/milk/${record.id}/edit`} class="text-yellow-600 hover:text-yellow-800">编辑</a>
-                </td>
+    <!-- 产奶记录列表 -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      {records && records.length > 0 ? (
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-4 py-3 text-left">挤奶时间</th>
+                <th class="px-4 py-3 text-left hidden md:table-cell">奶牛编号</th>
+                <th class="px-4 py-3 text-left">时段</th>
+                <th class="px-4 py-3 text-left">产量(L)</th>
+                <th class="px-4 py-3 text-left hidden md:table-cell">脂肪率</th>
+                <th class="px-4 py-3 text-left hidden lg:table-cell">蛋白质率</th>
+                <th class="px-4 py-3 text-left hidden lg:table-cell">体细胞数</th>
+                <th class="px-4 py-3 text-center">操作</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {records.map((record) => {
+                const isSCCAbnormal = isAbnormalSomaticCellCount(record.somatic_cell_count);
+                
+                return (
+                  <tr class="border-b hover:bg-gray-50">
+                    <td class="px-4 py-3">
+                      {new Date(record.recorded_datetime).toLocaleString('zh-CN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </td>
+                    <td class="px-4 py-3 hidden md:table-cell font-medium">
+                      -
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="px-2 py-1 bg-blue-100 text-blue-800 rounded text-sm">
+                        {MilkingSessionLabels[record.milking_session]}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 font-semibold text-green-600">
+                      {record.milk_yield}
+                    </td>
+                    <td class="px-4 py-3 hidden md:table-cell">
+                      {record.fat_percentage ? `${record.fat_percentage}%` : '-'}
+                    </td>
+                    <td class="px-4 py-3 hidden lg:table-cell">
+                      {record.protein_percentage ? `${record.protein_percentage}%` : '-'}
+                    </td>
+                    <td class="px-4 py-3 hidden lg:table-cell">
+                      {record.somatic_cell_count ? (
+                        <span class={isSCCAbnormal ? 'text-red-600 font-medium' : ''}>
+                          {record.somatic_cell_count}
+                        </span>
+                      ) : '-'}
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                      <a
+                        href={`/milk/${record.id}`}
+                        class="inline-block px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                      >
+                        详情
+                      </a>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div class="text-center py-12 text-gray-500">
+          <p class="text-lg mb-2">暂无产奶记录</p>
+          <a href="/milk/new" class="text-blue-600 hover:underline">
+            点击添加第一条记录
+          </a>
+        </div>
+      )}
+    </div>
+
+    <!-- 统计信息 -->
+    {records && records.length > 0 && (
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div class="bg-white p-4 rounded-lg shadow">
+          <div class="text-sm text-gray-600">总记录数</div>
+          <div class="text-2xl font-bold text-blue-600">{records.length}</div>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow">
+          <div class="text-sm text-gray-600">总产奶量</div>
+          <div class="text-2xl font-bold text-green-600">
+            {records.reduce((sum, r) => sum + r.milk_yield, 0).toFixed(1)}L
+          </div>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow">
+          <div class="text-sm text-gray-600">平均产量</div>
+          <div class="text-2xl font-bold text-purple-600">
+            {(records.reduce((sum, r) => sum + r.milk_yield, 0) / records.length).toFixed(1)}L
+          </div>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow">
+          <div class="text-sm text-gray-600">异常记录</div>
+          <div class="text-2xl font-bold text-red-600">
+            {records.filter(r => isAbnormalSomaticCellCount(r.somatic_cell_count)).length}
+          </div>
+        </div>
       </div>
     )}
   </div>
 </Layout>
-

@@ -1,174 +1,195 @@
 ---
-import Layout from '../../components/layout/Layout.astro';
+/**
+ * 饲料管理页面
+ */
+import Layout from '@components/layout/Layout.astro';
+import { getFeedFormulas, getFeedingRecords } from '@/services/feed.service';
 
-const title = '饲料管理';
+const activeTab = Astro.url.searchParams.get('tab') || 'formulas';
+
+const { data: formulas } = await getFeedFormulas();
+const { data: records } = await getFeedingRecords();
 ---
 
-<Layout title={title}>
-  <div class="min-h-screen bg-gray-50 py-8">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <!-- 页面标题 -->
-      <div class="mb-8">
-        <h1 class="text-3xl font-bold text-gray-900">{title}</h1>
-        <p class="mt-2 text-sm text-gray-600">
-          管理饲料配方和饲喂记录，优化奶牛营养方案
-        </p>
+<Layout title="饲料管理">
+  <div class="space-y-6">
+    <!-- 页面头部 -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+      <div>
+        <h1 class="text-2xl md:text-3xl font-bold">饲料管理</h1>
+        <p class="text-gray-600 mt-1">饲料配方和投喂记录管理</p>
       </div>
+      <div class="flex gap-2">
+        <a
+          href="/feed/formula/new"
+          class="min-h-[44px] px-6 bg-green-600 text-white rounded-lg hover:bg-green-700 flex items-center justify-center"
+        >
+          + 新建配方
+        </a>
+        <a
+          href="/feed/feeding/new"
+          class="min-h-[44px] px-6 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center"
+        >
+          + 添加投喂记录
+        </a>
+      </div>
+    </div>
 
-      <!-- 标签页 -->
-      <div class="border-b border-gray-200 mb-6">
-        <nav class="-mb-px flex space-x-8" aria-label="Tabs">
+    <!-- 标签页 -->
+    <div class="bg-white rounded-lg shadow">
+      <div class="border-b">
+        <nav class="flex">
           <a
-            href="#formulas"
-            class="border-indigo-500 text-indigo-600 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+            href="/feed?tab=formulas"
+            class={`px-6 py-3 border-b-2 font-medium ${
+              activeTab === 'formulas' 
+                ? 'border-blue-600 text-blue-600' 
+                : 'border-transparent text-gray-600 hover:text-gray-800'
+            }`}
           >
             饲料配方
           </a>
           <a
-            href="#records"
-            class="border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm"
+            href="/feed?tab=records"
+            class={`px-6 py-3 border-b-2 font-medium ${
+              activeTab === 'records' 
+                ? 'border-blue-600 text-blue-600' 
+                : 'border-transparent text-gray-600 hover:text-gray-800'
+            }`}
           >
-            饲喂记录
+            投喂记录
           </a>
         </nav>
       </div>
 
-      <!-- 饲料配方区域 -->
-      <div id="formulas" class="mb-8">
-        <div class="mb-6 flex justify-between items-center">
-          <h2 class="text-xl font-semibold text-gray-900">饲料配方</h2>
-          <button
-            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            <svg class="mr-2 -ml-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            新增配方
-          </button>
-        </div>
-
-        <!-- 配方列表 -->
-        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          <!-- 示例配方卡片 -->
-          <div class="bg-white overflow-hidden shadow rounded-lg">
-            <div class="p-5">
-              <div class="flex items-center justify-between mb-4">
-                <h3 class="text-lg font-medium text-gray-900">示例配方</h3>
-                <span class="px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                  在用
-                </span>
+      <div class="p-6">
+        {activeTab === 'formulas' ? (
+          <!-- 饲料配方列表 -->
+          <div>
+            {formulas && formulas.length > 0 ? (
+              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {formulas.map((formula) => (
+                  <div class="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                    <h3 class="font-semibold text-lg mb-2">{formula.formula_name}</h3>
+                    <p class="text-sm text-gray-600 mb-2">编号: {formula.formula_code}</p>
+                    <p class="text-sm text-gray-600 mb-3">适用: {formula.target_group}</p>
+                    {formula.total_cost_per_kg && (
+                      <p class="text-sm text-green-600 font-medium mb-3">
+                        成本: ¥{formula.total_cost_per_kg}/kg
+                      </p>
+                    )}
+                    <a
+                      href={`/feed/formula/${formula.id}`}
+                      class="inline-block px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm"
+                    >
+                      查看详情
+                    </a>
+                  </div>
+                ))}
               </div>
-              <div class="space-y-2">
-                <div class="flex justify-between text-sm">
-                  <span class="text-gray-500">能量:</span>
-                  <span class="font-medium">-- MJ/kg</span>
-                </div>
-                <div class="flex justify-between text-sm">
-                  <span class="text-gray-500">蛋白质:</span>
-                  <span class="font-medium">-- %</span>
-                </div>
-                <div class="flex justify-between text-sm">
-                  <span class="text-gray-500">纤维:</span>
-                  <span class="font-medium">-- %</span>
-                </div>
+            ) : (
+              <div class="text-center py-12 text-gray-500">
+                <p class="text-lg mb-2">暂无饲料配方</p>
+                <a href="/feed/formula/new" class="text-blue-600 hover:underline">
+                  点击创建第一个配方
+                </a>
               </div>
-              <div class="mt-4 flex gap-2">
-                <button class="flex-1 px-3 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 rounded-md hover:bg-indigo-100">
-                  查看详情
-                </button>
-                <button class="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
-                  编辑
-                </button>
+            )}
+          </div>
+        ) : (
+          <!-- 投喂记录列表 -->
+          <div>
+            {records && records.length > 0 ? (
+              <div class="overflow-x-auto">
+                <table class="w-full border-collapse">
+                  <thead class="bg-gray-50">
+                    <tr>
+                      <th class="px-4 py-3 text-left">投喂时间</th>
+                      <th class="px-4 py-3 text-left hidden md:table-cell">奶牛编号</th>
+                      <th class="px-4 py-3 text-left">饲料配方</th>
+                      <th class="px-4 py-3 text-left">投喂量(kg)</th>
+                      <th class="px-4 py-3 text-center">操作</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {records.map((record) => (
+                      <tr class="border-b hover:bg-gray-50">
+                        <td class="px-4 py-3">
+                          {new Date(record.feeding_datetime).toLocaleString('zh-CN')}
+                        </td>
+                        <td class="px-4 py-3 hidden md:table-cell">-</td>
+                        <td class="px-4 py-3">-</td>
+                        <td class="px-4 py-3 font-semibold">{record.quantity_kg}</td>
+                        <td class="px-4 py-3 text-center">
+                          <a
+                            href={`/feed/feeding/${record.id}`}
+                            class="inline-block px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                          >
+                            详情
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
-            </div>
-          </div>
-
-          <!-- 空状态 -->
-          <div class="bg-white overflow-hidden shadow rounded-lg col-span-full">
-            <div class="p-12 text-center">
-              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
-              <h3 class="mt-2 text-sm font-medium text-gray-900">暂无饲料配方</h3>
-              <p class="mt-1 text-sm text-gray-500">开始创建您的第一个饲料配方</p>
-              <div class="mt-6">
-                <button
-                  class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  <svg class="mr-2 -ml-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                  </svg>
-                  新增配方
-                </button>
+            ) : (
+              <div class="text-center py-12 text-gray-500">
+                <p class="text-lg mb-2">暂无投喂记录</p>
+                <a href="/feed/feeding/new" class="text-blue-600 hover:underline">
+                  点击添加第一条记录
+                </a>
               </div>
-            </div>
+            )}
           </div>
-        </div>
-      </div>
-
-      <!-- 饲喂记录区域 -->
-      <div id="records">
-        <div class="mb-6 flex justify-between items-center">
-          <h2 class="text-xl font-semibold text-gray-900">饲喂记录</h2>
-          <button
-            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          >
-            <svg class="mr-2 -ml-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-            记录饲喂
-          </button>
-        </div>
-
-        <!-- 记录列表 -->
-        <div class="bg-white shadow overflow-hidden sm:rounded-md">
-          <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
-            <h3 class="text-lg leading-6 font-medium text-gray-900">最近记录</h3>
-          </div>
-          <div class="bg-white px-4 py-5 sm:p-6">
-            <div class="text-center py-12">
-              <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-              </svg>
-              <h3 class="mt-2 text-sm font-medium text-gray-900">暂无饲喂记录</h3>
-              <p class="mt-1 text-sm text-gray-500">开始记录每日饲喂情况</p>
-              <div class="mt-6">
-                <button
-                  class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                >
-                  <svg class="mr-2 -ml-1 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-                  </svg>
-                  记录饲喂
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 说明信息 -->
-      <div class="mt-8 bg-blue-50 border border-blue-200 rounded-md p-4">
-        <div class="flex">
-          <div class="flex-shrink-0">
-            <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
-            </svg>
-          </div>
-          <div class="ml-3">
-            <h3 class="text-sm font-medium text-blue-800">饲料管理功能</h3>
-            <div class="mt-2 text-sm text-blue-700">
-              <ul class="list-disc pl-5 space-y-1">
-                <li>创建和管理多种饲料配方</li>
-                <li>记录每日饲喂量和时间</li>
-                <li>分析饲料成本和营养效果</li>
-                <li>根据奶牛阶段自动推荐配方</li>
-              </ul>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
     </div>
+
+    <!-- 统计信息 -->
+    {activeTab === 'formulas' && formulas && (
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-white p-4 rounded-lg shadow">
+          <div class="text-sm text-gray-600">配方总数</div>
+          <div class="text-2xl font-bold text-blue-600">{formulas.length}</div>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow">
+          <div class="text-sm text-gray-600">启用配方</div>
+          <div class="text-2xl font-bold text-green-600">
+            {formulas.filter(f => f.is_active).length}
+          </div>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow">
+          <div class="text-sm text-gray-600">平均成本</div>
+          <div class="text-2xl font-bold text-purple-600">
+            ¥{formulas.filter(f => f.total_cost_per_kg).length > 0 
+              ? (formulas.reduce((sum, f) => sum + (f.total_cost_per_kg || 0), 0) / 
+                 formulas.filter(f => f.total_cost_per_kg).length).toFixed(2)
+              : '0.00'}/kg
+          </div>
+        </div>
+      </div>
+    )}
+
+    {activeTab === 'records' && records && records.length > 0 && (
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-white p-4 rounded-lg shadow">
+          <div class="text-sm text-gray-600">投喂次数</div>
+          <div class="text-2xl font-bold text-blue-600">{records.length}</div>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow">
+          <div class="text-sm text-gray-600">总投喂量</div>
+          <div class="text-2xl font-bold text-green-600">
+            {records.reduce((sum, r) => sum + r.quantity_kg, 0).toFixed(1)}kg
+          </div>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow">
+          <div class="text-sm text-gray-600">平均投喂量</div>
+          <div class="text-2xl font-bold text-purple-600">
+            {(records.reduce((sum, r) => sum + r.quantity_kg, 0) / records.length).toFixed(1)}kg
+          </div>
+        </div>
+      </div>
+    )}
   </div>
 </Layout>
-

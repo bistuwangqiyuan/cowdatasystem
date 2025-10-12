@@ -1,100 +1,188 @@
 ---
 /**
- * Health Records List Page
- * 
- * 健康记录列表页面。
+ * 健康记录列表页面
  */
-
 import Layout from '@components/layout/Layout.astro';
 import { getHealthRecords } from '@/services/health.service';
-import { HEALTH_STATUS_NAMES, HEALTH_STATUS_COLORS } from '@/types/health.types';
+import { isAbnormalHealth, getTemperatureStatus } from '@/types/health.types';
 
-export const prerender = false;
+// 获取查询参数
+const cowId = Astro.url.searchParams.get('cow_id');
+const abnormalOnly = Astro.url.searchParams.get('abnormal') === 'true';
 
-const { data: records, error } = await getHealthRecords();
+// 获取健康记录
+const { data: records, error } = await getHealthRecords({
+  cow_id: cowId || undefined,
+  abnormal_only: abnormalOnly,
+});
+
+if (error) {
+  console.error('Failed to load health records:', error);
+}
+
+const mentalStateLabels: Record<string, string> = {
+  normal: '正常',
+  depressed: '沉郁',
+  excited: '兴奋',
+};
+
+const appetiteLabels: Record<string, string> = {
+  good: '良好',
+  normal: '一般',
+  poor: '较差',
+};
 ---
 
 <Layout title="健康记录">
-  <div class="max-w-7xl mx-auto">
-    <div class="flex justify-between items-center mb-6">
+  <div class="space-y-6">
+    <!-- 页面头部 -->
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div>
-        <h1 class="text-3xl font-bold text-gray-900">健康记录</h1>
-        <p class="text-gray-600 mt-1">管理奶牛的健康监测数据</p>
+        <h1 class="text-2xl md:text-3xl font-bold">健康记录管理</h1>
+        <p class="text-gray-600 mt-1">奶牛日常健康监测数据</p>
       </div>
-      <a 
-        href="/health/new" 
-        class="bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700 transition-colors shadow-md flex items-center space-x-2"
+      <a
+        href="/health/new"
+        class="w-full md:w-auto min-h-[44px] px-6 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center justify-center"
       >
-        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-        </svg>
-        <span>添加记录</span>
+        + 添加健康记录
       </a>
     </div>
 
-    {error && (
-      <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
-        加载失败：{error.message || '未知错误'}
-      </div>
-    )}
-
-    {!error && (!records || records.length === 0) && (
-      <div class="bg-gray-50 rounded-lg p-12 text-center">
-        <p class="text-gray-600 text-lg mb-4">还没有健康记录</p>
-        <a 
-          href="/health/new" 
-          class="inline-block bg-primary-600 text-white px-6 py-3 rounded-lg hover:bg-primary-700"
+    <!-- 筛选栏 -->
+    <div class="bg-white p-4 rounded-lg shadow">
+      <form method="get" class="flex flex-col md:flex-row gap-4">
+        <div class="flex-1">
+          <label class="flex items-center">
+            <input
+              type="checkbox"
+              name="abnormal"
+              value="true"
+              checked={abnormalOnly}
+              class="mr-2 w-5 h-5"
+            />
+            仅显示异常记录
+          </label>
+        </div>
+        <button
+          type="submit"
+          class="min-w-[80px] min-h-[44px] bg-gray-600 text-white rounded-lg hover:bg-gray-700"
         >
-          添加第一条记录
+          筛选
+        </button>
+        <a
+          href="/health"
+          class="min-w-[80px] min-h-[44px] flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50"
+        >
+          重置
         </a>
-      </div>
-    )}
+      </form>
+    </div>
 
-    {!error && records && records.length > 0 && (
-      <div class="bg-white rounded-lg shadow-md overflow-hidden">
-        <table class="w-full">
-          <thead class="bg-gray-50 border-b border-gray-200">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">记录日期</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">体温(°C)</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">精神状态</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">食欲</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">症状</th>
-              <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">操作</th>
-            </tr>
-          </thead>
-          <tbody class="bg-white divide-y divide-gray-200">
-            {records.map((record) => (
-              <tr class="hover:bg-gray-50">
-                <td class="px-6 py-4 whitespace-nowrap text-sm">{record.recorded_date}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                  {record.temperature ? record.temperature.toFixed(1) : '-'}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  {record.mental_status ? (
-                    <span class={`px-2 py-1 text-xs font-semibold rounded-full ${HEALTH_STATUS_COLORS[record.mental_status]}`}>
-                      {HEALTH_STATUS_NAMES[record.mental_status]}
-                    </span>
-                  ) : '-'}
-                </td>
-                <td class="px-6 py-4 whitespace-nowrap">
-                  {record.appetite ? (
-                    <span class={`px-2 py-1 text-xs font-semibold rounded-full ${HEALTH_STATUS_COLORS[record.appetite]}`}>
-                      {HEALTH_STATUS_NAMES[record.appetite]}
-                    </span>
-                  ) : '-'}
-                </td>
-                <td class="px-6 py-4 text-sm">{record.symptoms || '-'}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm space-x-2">
-                  <a href={`/health/${record.id}`} class="text-primary-600 hover:text-primary-800">查看</a>
-                  <a href={`/health/${record.id}/edit`} class="text-yellow-600 hover:text-yellow-800">编辑</a>
-                </td>
+    <!-- 健康记录列表 -->
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      {records && records.length > 0 ? (
+        <div class="overflow-x-auto">
+          <table class="w-full border-collapse">
+            <thead class="bg-gray-100">
+              <tr>
+                <th class="px-4 py-3 text-left">检查时间</th>
+                <th class="px-4 py-3 text-left hidden md:table-cell">奶牛编号</th>
+                <th class="px-4 py-3 text-left">体温</th>
+                <th class="px-4 py-3 text-left hidden md:table-cell">精神状态</th>
+                <th class="px-4 py-3 text-left hidden md:table-cell">食欲</th>
+                <th class="px-4 py-3 text-left">状态</th>
+                <th class="px-4 py-3 text-center">操作</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {records.map((record) => {
+                const isAbnormal = isAbnormalHealth(record);
+                const tempStatus = getTemperatureStatus(record.temperature);
+                
+                return (
+                  <tr class="border-b hover:bg-gray-50">
+                    <td class="px-4 py-3">
+                      {new Date(record.check_datetime).toLocaleString('zh-CN', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit',
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })}
+                    </td>
+                    <td class="px-4 py-3 hidden md:table-cell font-medium">
+                      {/* 显示奶牛编号，需要关联查询 */}
+                      -
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class={`font-medium ${
+                        tempStatus === 'normal' ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        {record.temperature}°C
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 hidden md:table-cell">
+                      {mentalStateLabels[record.mental_state]}
+                    </td>
+                    <td class="px-4 py-3 hidden md:table-cell">
+                      {appetiteLabels[record.appetite]}
+                    </td>
+                    <td class="px-4 py-3">
+                      {isAbnormal ? (
+                        <span class="px-2 py-1 bg-red-100 text-red-800 rounded text-sm">
+                          异常
+                        </span>
+                      ) : (
+                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded text-sm">
+                          正常
+                        </span>
+                      )}
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                      <a
+                        href={`/health/${record.id}`}
+                        class="inline-block px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+                      >
+                        详情
+                      </a>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <div class="text-center py-12 text-gray-500">
+          <p class="text-lg mb-2">暂无健康记录</p>
+          <a href="/health/new" class="text-blue-600 hover:underline">
+            点击添加第一条记录
+          </a>
+        </div>
+      )}
+    </div>
+
+    <!-- 统计信息 -->
+    {records && records.length > 0 && (
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-white p-4 rounded-lg shadow">
+          <div class="text-sm text-gray-600">总记录数</div>
+          <div class="text-2xl font-bold text-blue-600">{records.length}</div>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow">
+          <div class="text-sm text-gray-600">异常记录</div>
+          <div class="text-2xl font-bold text-red-600">
+            {records.filter(r => isAbnormalHealth(r)).length}
+          </div>
+        </div>
+        <div class="bg-white p-4 rounded-lg shadow">
+          <div class="text-sm text-gray-600">平均体温</div>
+          <div class="text-2xl font-bold text-green-600">
+            {(records.reduce((sum, r) => sum + r.temperature, 0) / records.length).toFixed(1)}°C
+          </div>
+        </div>
       </div>
     )}
   </div>
 </Layout>
-

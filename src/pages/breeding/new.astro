@@ -1,141 +1,148 @@
 ---
-import Layout from '../../components/layout/Layout.astro';
+/**
+ * 添加繁殖记录页面
+ */
+import Layout from '@components/layout/Layout.astro';
 
-const title = '新增繁殖记录';
+const cowId = Astro.url.searchParams.get('cow_id') || undefined;
 ---
 
-<Layout title={title}>
-  <div class="min-h-screen bg-gray-50 py-8">
-    <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-      <!-- 页面标题 -->
-      <div class="mb-8">
-        <a href="/breeding" class="text-indigo-600 hover:text-indigo-500 text-sm font-medium">
-          ← 返回繁殖管理
-        </a>
-        <h1 class="mt-2 text-3xl font-bold text-gray-900">{title}</h1>
-      </div>
+<Layout title="添加繁殖记录">
+  <div class="max-w-2xl mx-auto">
+    <div class="mb-6">
+      <h1 class="text-2xl md:text-3xl font-bold">添加繁殖记录</h1>
+      <p class="text-gray-600 mt-2">记录奶牛配种信息</p>
+    </div>
+    
+    <div class="bg-white p-6 rounded-lg shadow">
+      <form id="breeding-form" class="space-y-4">
+        <!-- 奶牛选择 -->
+        <div>
+          <label for="cow_id" class="block text-sm font-medium mb-1">
+            选择奶牛 <span class="text-red-500">*</span>
+          </label>
+          <select
+            id="cow_id"
+            name="cow_id"
+            required
+            class="w-full h-12 px-4 border rounded-lg"
+          >
+            <option value="">请选择奶牛</option>
+          </select>
+        </div>
 
-      <!-- 表单 -->
-      <div class="bg-white shadow sm:rounded-lg">
-        <div class="px-4 py-5 sm:p-6">
-          <form class="space-y-6">
-            <!-- 母牛选择 -->
-            <div>
-              <label for="dam_id" class="block text-sm font-medium text-gray-700">
-                母牛 <span class="text-red-500">*</span>
-              </label>
-              <select
-                id="dam_id"
-                name="dam_id"
-                required
-                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-              >
-                <option value="">请选择母牛</option>
-              </select>
-            </div>
+        <!-- 配种日期 -->
+        <div>
+          <label for="breeding_date" class="block text-sm font-medium mb-1">
+            配种日期 <span class="text-red-500">*</span>
+          </label>
+          <input
+            type="date"
+            id="breeding_date"
+            name="breeding_date"
+            required
+            max={new Date().toISOString().split('T')[0]}
+            class="w-full h-12 px-4 border rounded-lg"
+          />
+        </div>
 
-            <!-- 配种日期 -->
-            <div>
-              <label for="breeding_date" class="block text-sm font-medium text-gray-700">
-                配种日期 <span class="text-red-500">*</span>
-              </label>
+        <!-- 配种方式 -->
+        <div>
+          <label class="block text-sm font-medium mb-1">
+            配种方式 <span class="text-red-500">*</span>
+          </label>
+          <div class="flex gap-4">
+            <label class="flex items-center">
               <input
-                type="date"
-                id="breeding_date"
-                name="breeding_date"
-                required
-                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-              />
-            </div>
-
-            <!-- 配种方法 -->
-            <div>
-              <label for="breeding_method" class="block text-sm font-medium text-gray-700">
-                配种方法 <span class="text-red-500">*</span>
-              </label>
-              <select
-                id="breeding_method"
+                type="radio"
                 name="breeding_method"
+                value="artificial"
+                checked
                 required
-                class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md"
-              >
-                <option value="">请选择配种方法</option>
-                <option value="artificial_insemination">人工授精</option>
-                <option value="natural_mating">自然交配</option>
-              </select>
-            </div>
-
-            <!-- 精液批次 -->
-            <div>
-              <label for="semen_batch" class="block text-sm font-medium text-gray-700">
-                精液批次
-              </label>
-              <input
-                type="text"
-                id="semen_batch"
-                name="semen_batch"
-                placeholder="如：BATCH2024-001"
-                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                class="mr-2 w-5 h-5"
               />
-              <p class="mt-1 text-sm text-gray-500">人工授精时必填</p>
-            </div>
-
-            <!-- 备注 -->
-            <div>
-              <label for="notes" class="block text-sm font-medium text-gray-700">
-                备注
-              </label>
-              <textarea
-                id="notes"
-                name="notes"
-                rows="3"
-                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                placeholder="其他说明信息..."
-              ></textarea>
-            </div>
-
-            <!-- 按钮 -->
-            <div class="flex justify-end space-x-3">
-              <a
-                href="/breeding"
-                class="px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                取消
-              </a>
-              <button
-                type="submit"
-                class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-              >
-                保存记录
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <!-- 提示信息 -->
-      <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-md p-4">
-        <div class="flex">
-          <div class="flex-shrink-0">
-            <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-              <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd" />
-            </svg>
-          </div>
-          <div class="ml-3">
-            <h3 class="text-sm font-medium text-yellow-800">功能开发中</h3>
-            <div class="mt-2 text-sm text-yellow-700">
-              <p>繁殖记录功能正在开发中，当前页面仅为演示。完整功能将包括：</p>
-              <ul class="list-disc pl-5 mt-2 space-y-1">
-                <li>完整的繁殖记录CRUD操作</li>
-                <li>妊娠检查记录和预产期计算</li>
-                <li>产犊记录和犊牛信息关联</li>
-                <li>自动提醒功能</li>
-              </ul>
-            </div>
+              人工授精
+            </label>
+            <label class="flex items-center">
+              <input
+                type="radio"
+                name="breeding_method"
+                value="natural"
+                class="mr-2 w-5 h-5"
+              />
+              自然交配
+            </label>
           </div>
         </div>
-      </div>
+
+        <!-- 备注 -->
+        <div>
+          <label for="notes" class="block text-sm font-medium mb-1">
+            备注
+          </label>
+          <textarea
+            id="notes"
+            name="notes"
+            rows="3"
+            class="w-full px-4 py-2 border rounded-lg"
+            placeholder="其他补充信息..."
+          ></textarea>
+        </div>
+
+        <!-- 提交按钮 -->
+        <div class="flex gap-4">
+          <button
+            type="submit"
+            class="flex-1 min-h-[44px] bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            添加记录
+          </button>
+          <a
+            href="/breeding"
+            class="flex-1 min-h-[44px] flex items-center justify-center border border-gray-300 rounded-lg hover:bg-gray-50"
+          >
+            取消
+          </a>
+        </div>
+      </form>
     </div>
   </div>
 </Layout>
 
+<script>
+  import { createBreedingRecord } from '@/services/breeding.service';
+  import { getCows } from '@/services/cows.service';
+
+  const form = document.getElementById('breeding-form') as HTMLFormElement;
+  const cowSelect = document.getElementById('cow_id') as HTMLSelectElement;
+
+  // 加载母牛列表
+  (async () => {
+    const { data: cows } = await getCows({ status: 'active' });
+    if (cows) {
+      const femaleCows = cows.filter(cow => cow.gender === 'female');
+      femaleCows.forEach(cow => {
+        const option = document.createElement('option');
+        option.value = cow.id;
+        option.textContent = `${cow.cow_number} - ${cow.name || '未命名'}`;
+        cowSelect.appendChild(option);
+      });
+    }
+  })();
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const formData = new FormData(form);
+    const data: any = Object.fromEntries(formData);
+
+    try {
+      const result = await createBreedingRecord(data);
+      if (result.error) throw result.error;
+      alert('繁殖记录添加成功！');
+      window.location.href = '/breeding';
+    } catch (error: any) {
+      alert(`操作失败：${error.message}`);
+    }
+  });
+</script>
