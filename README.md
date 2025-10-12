@@ -99,9 +99,11 @@ cowdatasystem/
 
 ### 环境要求
 
-- **Node.js**: >= 18.0.0
-- **pnpm**: >= 8.0.0
-- **Git**: >= 2.0.0
+- **Node.js**: >= 18.0.0 → [下载安装](https://nodejs.org/)
+- **pnpm**: >= 8.0.0 → [安装指南](https://pnpm.io/installation)
+- **Git**: >= 2.0.0 → [下载安装](https://git-scm.com/downloads)
+- **Supabase 账号** → [免费注册](https://supabase.com/dashboard/sign-up)
+- **Netlify 账号** → [免费注册](https://app.netlify.com/signup)
 
 ### 安装步骤
 
@@ -118,42 +120,92 @@ cowdatasystem/
 
 3. **配置环境变量**
    
-   复制 `.env.example` 为 `.env.local`：
+   **步骤 3.1**: 创建 Supabase 项目
+   - 访问 [Supabase Dashboard](https://supabase.com/dashboard)
+   - 点击 **"New project"** 按钮
+   - 填写项目名称、数据库密码、地区
+   - 等待项目创建完成（约2-3分钟）
+   
+   **步骤 3.2**: 获取 API 凭证
+   - 进入项目设置：[Settings → API](https://supabase.com/dashboard/project/_/settings/api)
+   - 复制以下信息：
+     * **Project URL** (格式: `https://xxx.supabase.co`)
+     * **anon public** key
+     * **service_role** key（仅服务器端使用）
+   
+   **步骤 3.3**: 配置本地环境
+   
+   创建 `.env` 文件：
    ```bash
-   cp .env.example .env.local
+   # Windows PowerShell
+   New-Item -Path .env -ItemType File
+   
+   # macOS/Linux
+   touch .env
    ```
    
-   编辑 `.env.local` 填入你的 Supabase 凭证：
+   编辑 `.env` 填入您的凭证：
    ```env
-   SUPABASE_URL=your-project-url
-   SUPABASE_ANON_KEY=your-anon-key
-   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
-   ```
-
-4. **初始化 Supabase 本地开发环境** (可选)
-   ```bash
-   supabase init
-   supabase start
-   ```
-
-5. **运行数据库迁移**
-   ```bash
-   supabase db reset
+   PUBLIC_SUPABASE_URL=https://xxx.supabase.co
+   PUBLIC_SUPABASE_ANON_KEY=your-anon-key-here
+   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key-here
    ```
    
-   或者手动执行迁移脚本：
-   ```bash
-   psql -U postgres -d postgres < supabase/migrations/001_initial_schema.sql
-   psql -U postgres -d postgres < supabase/migrations/002_rls_policies.sql
-   psql -U postgres -d postgres < supabase/seed.sql
-   ```
+   > 💡 **在哪里找到这些信息？**
+   > - 直达链接：[您的项目 API 设置](https://supabase.com/dashboard/project/_/settings/api)
+   > - 详细说明：[Supabase 文档 - API 密钥](https://supabase.com/docs/guides/api/api-keys)
 
-6. **启动开发服务器**
+4. **初始化数据库并导入测试数据**
+   
+   **方式一：通过 SQL Editor（推荐，最简单）**
+   
+   1. 进入 [Supabase SQL Editor](https://supabase.com/dashboard/project/_/sql)
+   2. 点击 **"New query"** 创建新查询
+   3. 打开项目中的 [`database_setup_with_testdata.sql`](./database_setup_with_testdata.sql) 文件
+   4. 复制全部内容并粘贴到 SQL Editor
+   5. 点击 **"Run"** 按钮执行
+   6. 看到成功消息：`✅ 成功插入3头测试奶牛及其健康和产奶记录！`
+   
+   **方式二：通过 Supabase CLI**
+   
+   ```bash
+   # 安装 Supabase CLI（如果尚未安装）
+   npm install -g supabase
+   
+   # 链接到远程项目
+   supabase link --project-ref YOUR_PROJECT_ID
+   
+   # 应用迁移
+   supabase db push
+   ```
+   
+   > 📖 **详细指南和常见问题**
+   > - 完整步骤：[数据库设置指南](./SUPABASE_TESTDATA_GUIDE.md)
+   > - 遇到错误？[故障排查](./SUPABASE_TESTDATA_GUIDE.md#常见问题)
+   > - 测试数据说明：[测试数据详情](./SUPABASE_TESTDATA_GUIDE.md#测试数据详情)
+
+5. **启动开发服务器**
    ```bash
    pnpm dev
    ```
    
-   访问 http://localhost:4321
+   ✅ **启动成功标志**：
+   - 控制台显示：`Server running at http://localhost:4321/`
+   - 浏览器自动打开或手动访问：[http://localhost:4321](http://localhost:4321)
+   
+   **快速测试各功能模块**：
+   - 🐄 [奶牛档案](http://localhost:4321/cows) - 应显示3条测试数据
+   - 🏥 [健康记录](http://localhost:4321/health) - 应显示3条健康记录
+   - 🥛 [产奶记录](http://localhost:4321/milk) - 应显示6条产奶记录
+   - 💑 [繁殖管理](http://localhost:4321/breeding) - 功能演示页面
+   - 🌾 [饲料管理](http://localhost:4321/feed) - 功能演示页面
+   - 📊 [数据分析](http://localhost:4321/analytics) - 数据可视化
+   
+   > ⚠️ **看不到数据？** 
+   > 1. 确认步骤4已成功执行
+   > 2. 检查浏览器控制台是否有错误
+   > 3. 验证 `.env` 文件配置正确
+   > 4. 查看 [常见问题](#常见问题)
 
 ## 🧪 测试
 
@@ -334,6 +386,50 @@ chore: 构建/工具链相关
 **版本**: v0.2.0-MVP  
 **更新日期**: 2025-10-12  
 **状态**: MVP 完成 ✅ 可部署
+
+## ❓ 常见问题 (FAQ)
+
+### Q1: 如何获取 Supabase API 密钥？
+
+1. 登录 [Supabase Dashboard](https://supabase.com/dashboard)
+2. 选择您的项目
+3. 进入 [Settings → API](https://supabase.com/dashboard/project/_/settings/api)
+4. 复制 `Project URL`、`anon public key` 和 `service_role key`
+
+📖 [Supabase API 密钥文档](https://supabase.com/docs/guides/api/api-keys)
+
+### Q2: 数据库初始化失败怎么办？
+
+**常见错误及解决方法**：
+
+- **表已存在**: 使用新的 Supabase 项目或先删除现有表
+- **权限不足**: 在 SQL Editor 中执行（自动使用管理员权限）
+- **找不到 auth.users**: 确保已启用 Authentication 功能
+
+📖 [数据库故障排查](./SUPABASE_TESTDATA_GUIDE.md#常见问题)
+
+### Q3: 本地开发时看不到数据？
+
+1. 检查 `.env` 文件配置
+2. 浏览器控制台查看网络请求
+3. 在 [Table Editor](https://supabase.com/dashboard/project/_/editor) 确认数据已导入
+4. 确认已执行 RLS 策略脚本
+
+### Q4: Netlify 部署失败？
+
+- **构建失败**: 确认所有依赖已提交
+- **环境变量**: 在 [Netlify 设置](https://app.netlify.com/sites/cowdatasystem/settings/env) 中配置
+- **配置错误**: 检查 `netlify.toml` 语法
+
+📖 [部署指南](./QUICK_DEPLOY.md) | [Netlify 文档](https://docs.netlify.com/)
+
+### Q5: 需要帮助？
+
+- 📖 [项目文档](./specs/)
+- 🐛 [报告问题](https://github.com/bistuwangqiyuan/cowdatasystem/issues)
+- 📧 联系：wangqiyuan@bistu.edu.cn
+
+---
 
 ## 📝 任务清单 (TASK)
 
