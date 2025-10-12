@@ -1,0 +1,417 @@
+/**
+ * Mobile Optimization Styles
+ * 
+ * 移动端体验优化样式，包括：
+ * - 触控目标尺寸优化（最小 44x44px）
+ * - 手势支持样式
+ * - 响应式字体和间距
+ * - 底部导航栏
+ * - 下拉刷新样式
+ */
+
+/* ========================================
+   触控目标优化 (Touch Target Optimization)
+   ======================================== */
+
+/**
+ * 所有可交互元素的最小尺寸：44x44px (Apple HIG 推荐)
+ * 或 48x48px (Material Design 推荐)
+ */
+.btn,
+.button,
+button,
+a.btn,
+input[type="button"],
+input[type="submit"],
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 24px;
+}
+
+/* 移动端增大点击区域 */
+@media (max-width: 768px) {
+  .btn,
+  .button,
+  button,
+  a.btn {
+    min-height: 48px;
+    padding: 14px 28px;
+    font-size: 16px; /* 防止 iOS 自动缩放 */
+  }
+  
+  /* 表单输入框 */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="tel"],
+  input[type="date"],
+  select,
+  textarea {
+    min-height: 48px;
+    font-size: 16px; /* 防止 iOS 自动缩放 */
+    padding: 12px 16px;
+  }
+  
+  /* 复选框和单选按钮 */
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: 24px;
+    height: 24px;
+    margin: 12px;
+  }
+}
+
+/* ========================================
+   手势支持 (Gesture Support)
+   ======================================== */
+
+/* 可滑动区域 */
+.swipeable {
+  touch-action: pan-x pan-y;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* 可拖拽区域 */
+.draggable {
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.draggable:active {
+  cursor: grabbing;
+}
+
+/* 下拉刷新样式 */
+.pull-to-refresh {
+  position: relative;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pull-to-refresh-indicator {
+  position: absolute;
+  top: -60px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: top 0.3s ease;
+}
+
+.pull-to-refresh.pulling .pull-to-refresh-indicator {
+  top: 10px;
+}
+
+/* ========================================
+   触控反馈 (Touch Feedback)
+   ======================================== */
+
+/* 禁用默认的触控高亮 */
+* {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+}
+
+/* 自定义触控反馈 */
+.touch-feedback {
+  position: relative;
+  overflow: hidden;
+}
+
+.touch-feedback::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.1);
+  transform: translate(-50%, -50%);
+  transition: width 0.3s ease, height 0.3s ease;
+}
+
+.touch-feedback:active::after {
+  width: 200%;
+  height: 200%;
+}
+
+/* ========================================
+   移动端导航 (Mobile Navigation)
+   ======================================== */
+
+/* 底部导航栏 */
+.mobile-nav-bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 8px 0;
+  z-index: 40;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+  /* Safe area for notched devices */
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+@media (min-width: 769px) {
+  .mobile-nav-bottom {
+    display: none;
+  }
+}
+
+.mobile-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: #6b7280;
+  font-size: 12px;
+  padding: 8px;
+  min-height: 48px;
+  transition: color 0.2s ease;
+}
+
+.mobile-nav-item:active {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+}
+
+.mobile-nav-item.active {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.mobile-nav-icon {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 4px;
+}
+
+/* ========================================
+   响应式字体 (Responsive Typography)
+   ======================================== */
+
+/* 基于视口宽度的流式字体 */
+@media (max-width: 768px) {
+  html {
+    font-size: 16px; /* 防止 iOS 缩放 */
+  }
+  
+  h1 {
+    font-size: clamp(1.75rem, 5vw, 2.5rem);
+  }
+  
+  h2 {
+    font-size: clamp(1.5rem, 4vw, 2rem);
+  }
+  
+  h3 {
+    font-size: clamp(1.25rem, 3vw, 1.75rem);
+  }
+  
+  p {
+    font-size: clamp(0.875rem, 2.5vw, 1rem);
+    line-height: 1.6;
+  }
+}
+
+/* ========================================
+   移动端间距 (Mobile Spacing)
+   ======================================== */
+
+@media (max-width: 768px) {
+  .container {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  
+  .section {
+    margin-bottom: 24px;
+  }
+  
+  .card {
+    margin-bottom: 16px;
+  }
+  
+  /* 为底部导航栏预留空间 */
+  body.has-mobile-nav {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0));
+  }
+}
+
+/* ========================================
+   手势动画 (Gesture Animations)
+   ======================================== */
+
+/* 滑动删除 */
+.swipe-delete {
+  position: relative;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.swipe-delete.swiping-left {
+  transform: translateX(-80px);
+}
+
+.swipe-delete-action {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 80px;
+  background: #ef4444;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* 长按效果 */
+.long-press {
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+.long-press.pressing {
+  transform: scale(0.95);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* ========================================
+   移动端表单优化 (Mobile Form Optimization)
+   ======================================== */
+
+@media (max-width: 768px) {
+  /* 表单标签 */
+  label {
+    font-size: 14px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    display: block;
+  }
+  
+  /* 表单组间距 */
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  /* 表单按钮全宽 */
+  .form-actions button {
+    width: 100%;
+    margin-bottom: 12px;
+  }
+  
+  .form-actions button:last-child {
+    margin-bottom: 0;
+  }
+}
+
+/* ========================================
+   iOS Safe Area (刘海屏支持)
+   ======================================== */
+
+@supports (padding: env(safe-area-inset-top)) {
+  .safe-top {
+    padding-top: env(safe-area-inset-top);
+  }
+  
+  .safe-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  
+  .safe-left {
+    padding-left: env(safe-area-inset-left);
+  }
+  
+  .safe-right {
+    padding-right: env(safe-area-inset-right);
+  }
+}
+
+/* ========================================
+   横屏模式优化 (Landscape Optimization)
+   ======================================== */
+
+@media (max-width: 768px) and (orientation: landscape) {
+  /* 减小垂直间距 */
+  .mobile-nav-bottom {
+    height: 56px;
+    padding: 4px 0;
+  }
+  
+  .mobile-nav-item {
+    font-size: 11px;
+    min-height: 40px;
+  }
+  
+  .mobile-nav-icon {
+    width: 20px;
+    height: 20px;
+    margin-bottom: 2px;
+  }
+}
+
+/* ========================================
+   暗黑模式支持 (Dark Mode Support)
+   ======================================== */
+
+@media (prefers-color-scheme: dark) {
+  .mobile-nav-bottom {
+    background: #1f2937;
+    border-top-color: #374151;
+  }
+  
+  .mobile-nav-item {
+    color: #9ca3af;
+  }
+  
+  .mobile-nav-item.active {
+    color: #60a5fa;
+  }
+  
+  .touch-feedback::after {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+/* ========================================
+   性能优化 (Performance Optimization)
+   ======================================== */
+
+/* 使用 GPU 加速 */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* 滚动性能优化 */
+.smooth-scroll {
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+/* 防止过度滚动 */
+.no-overscroll {
+  overscroll-behavior: none;
+}
+

@@ -13,6 +13,56 @@ import Layout from '@components/layout/Layout.astro';
       <p class="text-gray-600">奶牛数据管理系统使用指南</p>
     </div>
 
+    <!-- 视频教程 -->
+    <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-lg shadow">
+      <h2 class="text-2xl font-semibold mb-4 flex items-center">
+        <span class="text-3xl mr-3">🎥</span>
+        视频教程
+      </h2>
+      <div class="grid md:grid-cols-2 gap-4">
+        <div class="bg-white p-4 rounded-lg hover:shadow-lg transition-shadow">
+          <div class="aspect-video bg-gray-200 rounded-lg mb-3 flex items-center justify-center">
+            <span class="text-4xl">▶️</span>
+          </div>
+          <h3 class="font-semibold mb-2">系统快速入门（5分钟）</h3>
+          <p class="text-sm text-gray-600 mb-3">了解系统的基本操作流程，从登录到录入第一条数据</p>
+          <a href="#" class="text-blue-600 hover:text-blue-800 text-sm font-medium">观看教程 →</a>
+        </div>
+        
+        <div class="bg-white p-4 rounded-lg hover:shadow-lg transition-shadow">
+          <div class="aspect-video bg-gray-200 rounded-lg mb-3 flex items-center justify-center">
+            <span class="text-4xl">▶️</span>
+          </div>
+          <h3 class="font-semibold mb-2">奶牛档案管理（8分钟）</h3>
+          <p class="text-sm text-gray-600 mb-3">详细讲解如何添加、编辑和管理奶牛档案信息</p>
+          <a href="#" class="text-blue-600 hover:text-blue-800 text-sm font-medium">观看教程 →</a>
+        </div>
+        
+        <div class="bg-white p-4 rounded-lg hover:shadow-lg transition-shadow">
+          <div class="aspect-video bg-gray-200 rounded-lg mb-3 flex items-center justify-center">
+            <span class="text-4xl">▶️</span>
+          </div>
+          <h3 class="font-semibold mb-2">健康与产奶记录（10分钟）</h3>
+          <p class="text-sm text-gray-600 mb-3">学习如何高效记录每日健康检查和产奶数据</p>
+          <a href="#" class="text-blue-600 hover:text-blue-800 text-sm font-medium">观看教程 →</a>
+        </div>
+        
+        <div class="bg-white p-4 rounded-lg hover:shadow-lg transition-shadow">
+          <div class="aspect-video bg-gray-200 rounded-lg mb-3 flex items-center justify-center">
+            <span class="text-4xl">▶️</span>
+          </div>
+          <h3 class="font-semibold mb-2">数据分析与报表（12分钟）</h3>
+          <p class="text-sm text-gray-600 mb-3">掌握数据可视化工具，生成并导出分析报表</p>
+          <a href="#" class="text-blue-600 hover:text-blue-800 text-sm font-medium">观看教程 →</a>
+        </div>
+      </div>
+      <div class="mt-4 p-4 bg-blue-100 border border-blue-300 rounded">
+        <p class="text-sm text-blue-800">
+          💡 <strong>提示：</strong>建议首次使用系统前观看"系统快速入门"视频，能够帮助您在5分钟内掌握基本操作。
+        </p>
+      </div>
+    </div>
+
     <!-- 快速开始 -->
     <div class="bg-white p-6 rounded-lg shadow">
       <h2 class="text-2xl font-semibold mb-4 flex items-center">
@@ -138,6 +188,81 @@ import Layout from '@components/layout/Layout.astro';
       </div>
     </div>
 
+    <!-- 故障排查指南 -->
+    <div class="bg-white p-6 rounded-lg shadow border-l-4 border-red-500">
+      <h2 class="text-2xl font-semibold mb-4 flex items-center">
+        <span class="text-3xl mr-3">🔧</span>
+        故障排查指南
+      </h2>
+      
+      <div class="space-y-4 text-sm">
+        <!-- 登录问题 -->
+        <div class="border-b pb-3">
+          <h3 class="font-semibold text-base mb-2 text-red-600">❌ 无法登录系统</h3>
+          <ul class="list-disc list-inside text-gray-700 space-y-1 pl-2">
+            <li>检查账号密码大小写，确认 Caps Lock 是否开启</li>
+            <li>点击"忘记密码"通过邮箱重置密码</li>
+            <li>清除浏览器缓存并重新尝试</li>
+            <li>检查网络连接，尝试切换Wi-Fi或使用移动数据</li>
+          </ul>
+        </div>
+
+        <!-- 数据录入问题 -->
+        <div class="border-b pb-3">
+          <h3 class="font-semibold text-base mb-2 text-red-600">❌ 数据无法保存</h3>
+          <ul class="list-disc list-inside text-gray-700 space-y-1 pl-2">
+            <li>确认所有必填字段（带*号）都已填写</li>
+            <li>检查日期格式和数字格式是否正确</li>
+            <li>确认奶牛编号唯一，不与现有记录重复</li>
+            <li>登录可能已过期，尝试重新登录</li>
+          </ul>
+        </div>
+
+        <!-- 页面显示问题 -->
+        <div class="border-b pb-3">
+          <h3 class="font-semibold text-base mb-2 text-red-600">❌ 页面显示异常</h3>
+          <ul class="list-disc list-inside text-gray-700 space-y-1 pl-2">
+            <li>按 Ctrl+F5 (Windows) 或 Cmd+Shift+R (Mac) 强制刷新页面</li>
+            <li>清除浏览器缓存和 Cookie</li>
+            <li>更换浏览器：推荐使用 Chrome、Edge 或 Safari 最新版本</li>
+            <li>临时禁用浏览器扩展（广告拦截等）</li>
+          </ul>
+        </div>
+
+        <!-- 移动端问题 -->
+        <div class="border-b pb-3">
+          <h3 class="font-semibold text-base mb-2 text-red-600">❌ 移动端使用问题</h3>
+          <ul class="list-disc list-inside text-gray-700 space-y-1 pl-2">
+            <li>尝试旋转到竖屏或横屏模式</li>
+            <li>双击页面重置缩放比例</li>
+            <li>关闭其他应用释放内存</li>
+            <li>确认使用稳定的 Wi-Fi 或 4G/5G 网络</li>
+          </ul>
+        </div>
+
+        <!-- 数据导出问题 -->
+        <div>
+          <h3 class="font-semibold text-base mb-2 text-red-600">❌ 数据导出失败</h3>
+          <ul class="list-disc list-inside text-gray-700 space-y-1 pl-2">
+            <li>确认所选时间范围内有数据记录</li>
+            <li>检查浏览器下载设置，允许自动下载</li>
+            <li>CSV 乱码：在 Excel 中选择"从文本/CSV"并选择 UTF-8 编码导入</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- 紧急故障处理 -->
+      <div class="mt-6 p-4 bg-red-50 border-l-4 border-red-500 rounded">
+        <h3 class="font-semibold text-red-800 mb-2">🚨 紧急故障处理</h3>
+        <p class="text-sm text-red-700 mb-2">如果遇到严重影响使用的问题，请：</p>
+        <ol class="list-decimal list-inside text-sm text-red-700 space-y-1">
+          <li>截图保存错误信息，记录操作步骤和时间</li>
+          <li>立即联系技术支持（见下方联系方式）</li>
+          <li>提供浏览器版本、操作系统和错误截图</li>
+        </ol>
+      </div>
+    </div>
+
     <!-- 联系支持 -->
     <div class="bg-gradient-to-r from-blue-500 to-purple-600 text-white p-6 rounded-lg shadow-lg">
       <h2 class="text-2xl font-semibold mb-4 flex items-center">
@@ -152,6 +277,13 @@ import Layout from '@components/layout/Layout.astro';
         <a href="/feedback" class="bg-white/20 backdrop-blur text-white px-6 py-3 rounded-lg hover:bg-white/30 transition-colors font-semibold text-center border border-white/30">
           💭 提交反馈
         </a>
+        <div class="bg-white/20 backdrop-blur text-white px-6 py-3 rounded-lg border border-white/30 text-center">
+          <div class="font-semibold">📞 技术支持热线</div>
+          <div class="text-sm mt-1">400-123-4567 (工作日 9:00-18:00)</div>
+        </div>
+      </div>
+      <div class="mt-4 text-sm opacity-90">
+        💡 <strong>提示：</strong>系统定期维护时间为每周日凌晨 2:00-4:00，维护期间可能无法访问。
       </div>
     </div>
 

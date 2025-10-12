@@ -1,119 +1,91 @@
 /**
- * Playwright E2E Test Configuration
+ * Playwright E2E Testing Configuration
  * 
- * 端到端测试配置:
- * - 移动端和桌面端测试
- * - 支持多浏览器测试
- * - 视频录制和截图
+ * 端到端测试配置文件，用于测试关键用户流程
+ * 
+ * 测试覆盖：
+ * - 用户认证流程
+ * - 奶牛档案管理
+ * - 健康与产奶记录
+ * - 数据分析和导出
  */
 
 import { defineConfig, devices } from '@playwright/test';
 
 export default defineConfig({
-  // 测试目录
   testDir: './tests/e2e',
   
-  // 测试匹配
-  testMatch: '**/*.spec.ts',
+  /* 最大失败次数 */
+  maxFailures: 3,
   
-  // 全局超时
-  timeout: 30000,
+  /* 并行运行测试 */
+  fullyParallel: true,
   
-  // 失败重试
+  /* 重试失败的测试 */
   retries: process.env.CI ? 2 : 0,
   
-  // 并行worker数量
+  /* 并发worker数量 */
   workers: process.env.CI ? 1 : undefined,
   
-  // 报告器
+  /* Reporter */
   reporter: [
     ['html', { outputFolder: 'playwright-report' }],
-    ['json', { outputFile: 'test-results/results.json' }],
     ['list'],
+    ['json', { outputFile: 'test-results/results.json' }],
   ],
   
-  // 共享配置
+  /* Shared settings for all projects */
   use: {
-    // 基础URL
-    baseURL: 'http://localhost:4321',
+    /* Base URL */
+    baseURL: process.env.BASE_URL || 'http://localhost:4321',
     
-    // 截图
+    /* Collect trace on failure */
+    trace: 'on-first-retry',
+    
+    /* Screenshot on failure */
     screenshot: 'only-on-failure',
     
-    // 视频
+    /* Video on failure */
     video: 'retain-on-failure',
     
-    // 追踪
-    trace: 'retain-on-failure',
-    
-    // 超时
+    /* Timeout */
     actionTimeout: 10000,
     navigationTimeout: 30000,
   },
-  
-  // 测试项目(多浏览器/设备)
+
+  /* Configure projects for major browsers */
   projects: [
-    // 移动端 - iPhone 12
+    {
+      name: 'chromium',
+      use: { ...devices['Desktop Chrome'] },
+    },
+
+    {
+      name: 'firefox',
+      use: { ...devices['Desktop Firefox'] },
+    },
+
+    {
+      name: 'webkit',
+      use: { ...devices['Desktop Safari'] },
+    },
+
+    /* Mobile viewports */
     {
       name: 'Mobile Chrome',
-      use: {
-        ...devices['iPhone 12'],
-        viewport: { width: 390, height: 844 },
-      },
+      use: { ...devices['Pixel 5'] },
     },
-    
-    // 移动端 - iPhone SE (小屏)
     {
-      name: 'Mobile Chrome Small',
-      use: {
-        ...devices['iPhone SE'],
-        viewport: { width: 375, height: 667 },
-      },
-    },
-    
-    // 平板
-    {
-      name: 'Tablet',
-      use: {
-        ...devices['iPad Pro'],
-        viewport: { width: 1024, height: 1366 },
-      },
-    },
-    
-    // 桌面 - Chrome
-    {
-      name: 'Desktop Chrome',
-      use: {
-        ...devices['Desktop Chrome'],
-        viewport: { width: 1920, height: 1080 },
-      },
-    },
-    
-    // 桌面 - Firefox
-    {
-      name: 'Desktop Firefox',
-      use: {
-        ...devices['Desktop Firefox'],
-        viewport: { width: 1920, height: 1080 },
-      },
-    },
-    
-    // 桌面 - Safari
-    {
-      name: 'Desktop Safari',
-      use: {
-        ...devices['Desktop Safari'],
-        viewport: { width: 1920, height: 1080 },
-      },
+      name: 'Mobile Safari',
+      use: { ...devices['iPhone 12'] },
     },
   ],
-  
-  // Web Server配置(自动启动开发服务器)
+
+  /* Run local dev server before starting tests */
   webServer: {
     command: 'pnpm dev',
     url: 'http://localhost:4321',
-    timeout: 120000,
     reuseExistingServer: !process.env.CI,
+    timeout: 120000,
   },
 });
-
