@@ -1,0 +1,129 @@
+---
+/**
+ * Optimized Image Component
+ * 
+ * 提供图片性能优化功能：
+ * - 懒加载（Lazy Loading）
+ * - 响应式图片（Responsive Images）
+ * - WebP 格式支持
+ * - 明确的宽高比（防止 CLS）
+ * - 预加载提示（Priority Hints）
+ * 
+ * 使用方法：
+ * <OptimizedImage 
+ *   src="/images/cow.jpg" 
+ *   alt="奶牛照片"
+ *   width={800}
+ *   height={600}
+ *   loading="lazy"
+ * />
+ */
+
+export interface Props {
+  /** 图片源路径 */
+  src: string;
+  /** 替代文本（必填，用于无障碍和SEO） */
+  alt: string;
+  /** 图片宽度 */
+  width?: number;
+  /** 图片高度 */
+  height?: number;
+  /** 加载策略：lazy（懒加载）| eager（立即加载） */
+  loading?: 'lazy' | 'eager';
+  /** 解码策略：async（异步）| sync（同步）| auto */
+  decoding?: 'async' | 'sync' | 'auto';
+  /** 优先级提示：high（高优先级）| low（低优先级）| auto */
+  fetchpriority?: 'high' | 'low' | 'auto';
+  /** CSS类名 */
+  class?: string;
+  /** 图片对象拟合方式 */
+  objectFit?: 'contain' | 'cover' | 'fill' | 'none' | 'scale-down';
+  /** 是否显示占位符（防止布局偏移） */
+  placeholder?: boolean;
+  /** 响应式断点（可选，用于srcset） */
+  sizes?: string;
+}
+
+const {
+  src,
+  alt,
+  width,
+  height,
+  loading = 'lazy',
+  decoding = 'async',
+  fetchpriority = 'auto',
+  class: className = '',
+  objectFit = 'cover',
+  placeholder = true,
+  sizes,
+} = Astro.props;
+
+// 计算宽高比（防止 CLS - Cumulative Layout Shift）
+const aspectRatio = width && height ? (height / width) * 100 : undefined;
+
+// 生成 WebP 源路径（假设有WebP版本）
+const webpSrc = src.replace(/\.(jpg|jpeg|png)$/, '.webp');
+
+// 生成响应式图片的 srcset（如果提供了宽度）
+const srcset = width
+  ? `${src} 1x, ${src.replace(/(\.[^.]+)$/, '@2x$1')} 2x`
+  : undefined;
+
+// 默认 sizes 属性（如果未提供）
+const defaultSizes = sizes || '(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw';
+---
+
+<div class={`relative overflow-hidden ${className}`} style={aspectRatio ? `padding-bottom: ${aspectRatio}%` : undefined}>
+  {placeholder && aspectRatio && (
+    <!-- 占位符背景（加载前显示） -->
+    <div class="absolute inset-0 bg-gray-200 animate-pulse" aria-hidden="true"></div>
+  )}
+  
+  <picture class="absolute inset-0">
+    <!-- WebP 格式（现代浏览器） -->
+    {width && height && (
+      <source
+        type="image/webp"
+        srcset={webpSrc}
+        sizes={defaultSizes}
+        width={width}
+        height={height}
+      />
+    )}
+    
+    <!-- 原始格式（回退） -->
+    <img
+      src={src}
+      alt={alt}
+      width={width}
+      height={height}
+      loading={loading}
+      decoding={decoding}
+      fetchpriority={fetchpriority}
+      srcset={srcset}
+      sizes={defaultSizes}
+      class="absolute inset-0 w-full h-full"
+      style={`object-fit: ${objectFit};`}
+    />
+  </picture>
+</div>
+
+<style>
+  /* 图片加载动画 */
+  img {
+    opacity: 0;
+    animation: fadeIn 0.3s ease-in forwards;
+  }
+  
+  @keyframes fadeIn {
+    to {
+      opacity: 1;
+    }
+  }
+  
+  /* 防止图片闪烁 */
+  img[loading="lazy"] {
+    content-visibility: auto;
+  }
+</style>
+

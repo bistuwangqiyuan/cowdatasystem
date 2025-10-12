@@ -1,0 +1,61 @@
+# robots.txt for 奶牛数据管理系统
+# 生成日期: 2025-10-12
+
+# 允许所有搜索引擎爬虫访问公开内容
+User-agent: *
+Allow: /
+Allow: /cows
+Allow: /analytics
+Allow: /help
+
+# 不允许爬取用户特定数据页面和管理页面
+Disallow: /api/
+Disallow: /login
+Disallow: /admin/
+Disallow: /cows/*/edit
+Disallow: /health/*/edit
+Disallow: /milk/*/edit
+Disallow: /breeding/*/edit
+Disallow: /feed/*/edit
+
+# 不允许爬取敏感或临时文件
+Disallow: /*.json$
+Disallow: /*?*
+Disallow: /_*
+
+# Sitemap 位置
+Sitemap: https://cowdatasystem.netlify.app/sitemap.xml
+Sitemap: https://cowdatasystem.netlify.app/sitemap-index.xml
+
+# 爬取频率建议（仅供参考）
+Crawl-delay: 1
+
+# 针对特定爬虫的规则
+# Google
+User-agent: Googlebot
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+
+# Bing
+User-agent: Bingbot
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+
+# 百度
+User-agent: Baiduspider
+Allow: /
+Disallow: /api/
+Disallow: /admin/
+
+# 禁止已知的恶意爬虫
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Disallow: /
+
+User-agent: DotBot
+Disallow: /
+

@@ -1,0 +1,198 @@
+---
+/**
+ * Toast Notification Component
+ * 
+ * 全局Toast通知组件，监听 'app:error' 事件并显示通知。
+ * 支持成功、错误、警告和信息四种类型的通知。
+ * 
+ * 特性：
+ * - 自动消失（可配置时间）
+ * - 多条通知堆叠显示
+ * - 响应式设计（移动端优化）
+ * - 平滑动画
+ * - 无障碍支持（ARIA）
+ */
+---
+
+<div id="toast-container" class="fixed top-4 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none" role="region" aria-live="polite" aria-label="通知">
+  <!-- Toast 会动态插入到这里 -->
+</div>
+
+<script>
+  import { ErrorLevel } from '@/lib/errors';
+
+  interface ToastData {
+    message: string;
+    level: ErrorLevel;
+    code: string;
+  }
+
+  /**
+   * Toast 样式配置
+   */
+  const TOAST_STYLES = {
+    [ErrorLevel.SUCCESS]: {
+      bg: 'bg-green-50 border-green-200',
+      text: 'text-green-800',
+      icon: '✓',
+      iconBg: 'bg-green-100',
+    },
+    [ErrorLevel.ERROR]: {
+      bg: 'bg-red-50 border-red-200',
+      text: 'text-red-800',
+      icon: '✕',
+      iconBg: 'bg-red-100',
+    },
+    [ErrorLevel.WARNING]: {
+      bg: 'bg-yellow-50 border-yellow-200',
+      text: 'text-yellow-800',
+      icon: '⚠',
+      iconBg: 'bg-yellow-100',
+    },
+    [ErrorLevel.INFO]: {
+      bg: 'bg-blue-50 border-blue-200',
+      text: 'text-blue-800',
+      icon: 'ℹ',
+      iconBg: 'bg-blue-100',
+    },
+  };
+
+  /**
+   * Toast 自动消失时间（毫秒）
+   */
+  const TOAST_DURATION = {
+    [ErrorLevel.SUCCESS]: 3000,
+    [ErrorLevel.ERROR]: 5000,
+    [ErrorLevel.WARNING]: 4000,
+    [ErrorLevel.INFO]: 3000,
+  };
+
+  /**
+   * 创建并显示 Toast
+   */
+  function showToast(data: ToastData): void {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const style = TOAST_STYLES[data.level];
+    const duration = TOAST_DURATION[data.level];
+
+    // 创建 Toast 元素
+    const toast = document.createElement('div');
+    toast.className = `${style.bg} ${style.text} border rounded-lg shadow-lg p-4 flex items-start gap-3 pointer-events-auto transform transition-all duration-300 ease-out translate-x-full opacity-0`;
+    toast.setAttribute('role', 'alert');
+    toast.setAttribute('aria-live', 'assertive');
+
+    toast.innerHTML = `
+      <div class="${style.iconBg} rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0">
+        <span class="text-lg font-bold">${style.icon}</span>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-sm font-medium break-words">${escapeHtml(data.message)}</p>
+        ${data.code !== 'SUCCESS' && data.code !== 'INFO' ? `<p class="text-xs opacity-75 mt-1">错误代码: ${escapeHtml(data.code)}</p>` : ''}
+      </div>
+      <button 
+        type="button" 
+        class="flex-shrink-0 opacity-70 hover:opacity-100 transition-opacity focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded"
+        aria-label="关闭通知"
+      >
+        <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd" />
+        </svg>
+      </button>
+    `;
+
+    // 添加到容器
+    container.appendChild(toast);
+
+    // 触发动画（进入）
+    requestAnimationFrame(() => {
+      toast.classList.remove('translate-x-full', 'opacity-0');
+    });
+
+    // 关闭按钮事件
+    const closeButton = toast.querySelector('button');
+    if (closeButton) {
+      closeButton.addEventListener('click', () => {
+        removeToast(toast);
+      });
+    }
+
+    // 自动消失
+    setTimeout(() => {
+      removeToast(toast);
+    }, duration);
+  }
+
+  /**
+   * 移除 Toast
+   */
+  function removeToast(toast: HTMLElement): void {
+    toast.classList.add('translate-x-full', 'opacity-0');
+    setTimeout(() => {
+      toast.remove();
+    }, 300);
+  }
+
+  /**
+   * 转义 HTML 字符
+   */
+  function escapeHtml(text: string): string {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  /**
+   * 监听全局错误事件
+   */
+  window.addEventListener('app:error', (event: Event) => {
+    const customEvent = event as CustomEvent<ToastData>;
+    showToast(customEvent.detail);
+  });
+
+  /**
+   * 监听未捕获的错误
+   */
+  window.addEventListener('error', (event: ErrorEvent) => {
+    console.error('Uncaught error:', event.error);
+    showToast({
+      message: '发生了一个意外错误，请刷新页面后重试。',
+      level: ErrorLevel.ERROR,
+      code: 'UNCAUGHT_ERROR',
+    });
+  });
+
+  /**
+   * 监听未处理的 Promise 拒绝
+   */
+  window.addEventListener('unhandledrejection', (event: PromiseRejectionEvent) => {
+    console.error('Unhandled promise rejection:', event.reason);
+    showToast({
+      message: '操作失败，请稍后重试。',
+      level: ErrorLevel.ERROR,
+      code: 'UNHANDLED_REJECTION',
+    });
+  });
+</script>
+
+<style>
+  /* 移动端优化 */
+  @media (max-width: 640px) {
+    #toast-container {
+      top: auto;
+      bottom: 1rem;
+      right: 1rem;
+      left: 1rem;
+      max-width: none;
+    }
+  }
+  
+  /* 高对比度模式 */
+  @media (prefers-contrast: high) {
+    #toast-container > div {
+      border-width: 2px;
+    }
+  }
+</style>
+
