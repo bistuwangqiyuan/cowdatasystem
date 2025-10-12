@@ -11,6 +11,10 @@ import Footer from './Footer.astro';
 import SEO from '@/components/seo/SEO.astro';
 import Toast from '@/components/ui/Toast.astro';
 
+// 导入全局样式（Astro 会在构建时处理）
+import '@/styles/global.css';
+import '@/styles/mobile.css';
+
 interface Props {
   title: string;
   description?: string;
@@ -48,14 +52,6 @@ const {
       nofollow={nofollow}
       schema={schema}
     />
-    
-    <!-- Performance Optimization: Preload Critical Resources -->
-    <link rel="preload" href="/src/styles/global.css" as="style" />
-    <link rel="preload" href="/fonts/inter-var.woff2" as="font" type="font/woff2" crossorigin />
-    
-    <!-- Global Styles -->
-    <link rel="stylesheet" href="/src/styles/global.css" />
-    <link rel="stylesheet" href="/src/styles/mobile.css" />
     
     <!-- Resource Hints for Performance -->
     <link rel="dns-prefetch" href="https://fonts.googleapis.com" />
