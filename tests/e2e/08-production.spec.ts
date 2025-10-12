@@ -21,8 +21,8 @@ test.describe('生产环境 - 健康记录页面', () => {
     // 检查页面加载 - 使用更具体的选择器
     await expect(page.locator('h1').last()).toContainText('健康记录', { timeout: 10000 });
     
-    // 检查添加按钮
-    await expect(page.locator('a[href="/health/new"]')).toBeVisible();
+    // 检查添加按钮 - 使用更具体的选择器（蓝色按钮）
+    await expect(page.locator('a[href="/health/new"].bg-blue-600').first()).toBeVisible();
     
     // 检查页面内容
     await page.waitForTimeout(PROD_WAIT);
@@ -291,7 +291,7 @@ test.describe('生产环境 - 响应式设计', () => {
     await page.setViewportSize({ width: 375, height: 667 });
     await page.goto('/analytics');
     
-    await expect(page.locator('h1')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h1').last()).toBeVisible({ timeout: 10000 });
     await page.waitForTimeout(PROD_WAIT);
     
     const content = await page.content();
@@ -304,7 +304,7 @@ test.describe('生产环境 - 响应式设计', () => {
     await page.setViewportSize({ width: 768, height: 1024 });
     await page.goto('/health');
     
-    await expect(page.locator('h1')).toBeVisible({ timeout: 10000 });
+    await expect(page.locator('h1').last()).toBeVisible({ timeout: 10000 });
     
     console.log('✅ 平板端健康记录页面正常');
   });
