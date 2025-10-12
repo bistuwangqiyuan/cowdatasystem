@@ -13,13 +13,13 @@ import type { Database } from '@/types/supabase.types';
  * Supabase项目URL
  * @constant
  */
-const supabaseUrl = import.meta.env.SUPABASE_URL;
+const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || import.meta.env.SUPABASE_URL;
 
 /**
  * Supabase匿名密钥(公开密钥,用于客户端)
  * @constant
  */
-const supabaseAnonKey = import.meta.env.SUPABASE_ANON_KEY;
+const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || import.meta.env.SUPABASE_ANON_KEY;
 
 /**
  * 验证环境变量是否配置
