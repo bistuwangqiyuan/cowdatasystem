@@ -6,7 +6,7 @@
  * @module lib/supabase
  */
 
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from '@supabase/supabase-js';
 import type { Database } from '@/types/supabase.types';
 
 /**
@@ -22,23 +22,97 @@ const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL || import.meta.env.SUPAB
 const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY || import.meta.env.SUPABASE_ANON_KEY;
 
 /**
- * 验证环境变量是否配置
- * @throws {Error} 如果环境变量未配置
+ * 创建一个"已损坏"的桩客户端：所有 from(...).select/insert/update/delete 等链式
+ * 调用都返回 { data: null, error: <message> }，避免 SSR 在 Supabase 不可用
+ * （缺失环境变量、项目被删除、DNS 故障等）时抛出未捕获异常导致 500。
+ *
+ * 这是防御性兜底。与 services/* 中的 try/catch 配合，确保页面始终能渲染空状态。
  */
+function createStubClient(reason: string): SupabaseClient<Database> {
+  const stubError = { message: `Supabase unavailable: ${reason}`, details: '', hint: '', code: 'SUPABASE_UNAVAILABLE' } as const;
+  const stubResult = { data: null, error: stubError, count: null, status: 0, statusText: '' } as const;
+
+  // 任意链式方法都返回自身，await 时 resolve 为 stubResult。
+  const builder: any = new Proxy(function () {}, {
+    get(_t, prop) {
+      if (prop === 'then') {
+        return (resolve: any) => resolve(stubResult);
+      }
+      return () => builder;
+    },
+    apply() {
+      return builder;
+    },
+  });
+
+  const client: any = {
+    from: () => builder,
+    rpc: () => builder,
+    auth: {
+      getUser: async () => ({ data: { user: null }, error: stubError }),
+      getSession: async () => ({ data: { session: null }, error: stubError }),
+      signInWithPassword: async () => ({ data: { user: null, session: null }, error: stubError }),
+      signUp: async () => ({ data: { user: null, session: null }, error: stubError }),
+      signOut: async () => ({ error: null }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+      resetPasswordForEmail: async () => ({ data: null, error: stubError }),
+      updateUser: async () => ({ data: { user: null }, error: stubError }),
+    },
+    channel: () => ({
+      on: () => ({ subscribe: () => ({ unsubscribe: () => {} }) }),
+      subscribe: () => ({ unsubscribe: () => {} }),
+      unsubscribe: () => {},
+    }),
+    removeChannel: () => Promise.resolve('ok'),
+    storage: { from: () => builder },
+  };
+
+  return client as SupabaseClient<Database>;
+}
+
+let _supabase: SupabaseClient<Database>;
+
 if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error(
-    'Missing Supabase environment variables. Please check your .env.local file.\n' +
-    'Required: SUPABASE_URL, SUPABASE_ANON_KEY'
+  console.warn(
+    '[Supabase] Missing environment variables (PUBLIC_SUPABASE_URL / PUBLIC_SUPABASE_ANON_KEY). ' +
+    '使用桩客户端，所有数据库操作将返回错误而不是抛异常，以避免 SSR 500。'
   );
+  _supabase = createStubClient('missing env vars');
+} else {
+  try {
+    _supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+      global: {
+        headers: {
+          'X-Client-Info': 'cowdatasystem/1.0.0',
+        },
+      },
+      db: {
+        schema: 'public',
+      },
+      realtime: {
+        params: {
+          eventsPerSecond: 10,
+        },
+      },
+    });
+  } catch (e: any) {
+    console.warn('[Supabase] createClient failed, falling back to stub client:', e?.message);
+    _supabase = createStubClient(`createClient threw: ${e?.message ?? 'unknown'}`);
+  }
 }
 
 /**
  * Supabase客户端实例(单例)
- * 
+ *
  * @example
  * ```typescript
  * import { supabase } from '@/lib/supabase';
- * 
+ *
  * // 查询数据
  * const { data, error } = await supabase
  *   .from('cows')
@@ -46,32 +120,7 @@ if (!supabaseUrl || !supabaseAnonKey) {
  *   .eq('status', 'active');
  * ```
  */
-export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    // 持久化session到localStorage
-    persistSession: true,
-    // 自动刷新token
-    autoRefreshToken: true,
-    // 检测session变化
-    detectSessionInUrl: true,
-  },
-  global: {
-    headers: {
-      // 自定义头部(可选)
-      'X-Client-Info': 'cowdatasystem/1.0.0',
-    },
-  },
-  db: {
-    // 数据库schema(默认public)
-    schema: 'public',
-  },
-  realtime: {
-    // Realtime配置
-    params: {
-      eventsPerSecond: 10,
-    },
-  },
-});
+export const supabase = _supabase;
 
 /**
  * 获取当前认证用户

@@ -69,49 +69,49 @@ export async function createMilkRecord(data: MilkRecordFormData) {
  * });
  */
 export async function getMilkRecords(filters?: MilkRecordFilters) {
-  let query = supabase
-    .from('milk_records')
-    .select(`
-      *,
-      cow:cows!inner(cow_number, name)
-    `)
-    .is('deleted_at', null)
-    .order('recorded_datetime', { ascending: false });
+  try {
+    let query = supabase
+      .from('milk_records')
+      .select(`
+        *,
+        cow:cows!inner(cow_number, name)
+      `)
+      .is('deleted_at', null)
+      .order('recorded_datetime', { ascending: false });
 
-  // 按奶牛ID过滤
-  if (filters?.cow_id) {
-    query = query.eq('cow_id', filters.cow_id);
+    if (filters?.cow_id) {
+      query = query.eq('cow_id', filters.cow_id);
+    }
+
+    if (filters?.start_date) {
+      query = query.gte('recorded_datetime', filters.start_date);
+    }
+    if (filters?.end_date) {
+      query = query.lte('recorded_datetime', filters.end_date);
+    }
+
+    if (filters?.session) {
+      query = query.eq('session', filters.session);
+    }
+
+    if (filters?.milker_id) {
+      query = query.eq('milker_id', filters.milker_id);
+    }
+
+    const { data, error } = await query;
+
+    if (filters?.abnormal_only && data) {
+      const abnormalRecords = data.filter(record =>
+        isAbnormalSomaticCellCount(record.somatic_cell_count)
+      );
+      return { data: abnormalRecords, error };
+    }
+
+    return { data, error };
+  } catch (error) {
+    console.error('[MilkService] getMilkRecords exception:', error);
+    return { data: null, error };
   }
-
-  // 按日期范围过滤
-  if (filters?.start_date) {
-    query = query.gte('recorded_datetime', filters.start_date);
-  }
-  if (filters?.end_date) {
-    query = query.lte('recorded_datetime', filters.end_date);
-  }
-
-  // 按挤奶时段过滤
-  if (filters?.session) {
-    query = query.eq('session', filters.session);
-  }
-
-  // 按挤奶人员过滤
-  if (filters?.milker_id) {
-    query = query.eq('milker_id', filters.milker_id);
-  }
-
-  const { data, error } = await query;
-
-  // 仅显示异常记录 (体细胞数超标)
-  if (filters?.abnormal_only && data) {
-    const abnormalRecords = data.filter(record => 
-      isAbnormalSomaticCellCount(record.somatic_cell_count)
-    );
-    return { data: abnormalRecords, error };
-  }
-
-  return { data, error };
 }
 
 /**
@@ -120,18 +120,23 @@ export async function getMilkRecords(filters?: MilkRecordFilters) {
  * @returns Supabase 响应
  */
 export async function getMilkRecordById(id: string) {
-  const { data, error } = await supabase
-    .from('milk_records')
-    .select(`
-      *,
-      cow:cows!inner(id, cow_number, name, breed),
-      milker:users!milk_records_milker_id_fkey(id, full_name, role)
-    `)
-    .eq('id', id)
-    .is('deleted_at', null)
-    .single<MilkRecordDetail>();
+  try {
+    const { data, error } = await supabase
+      .from('milk_records')
+      .select(`
+        *,
+        cow:cows!inner(id, cow_number, name, breed),
+        milker:users!milk_records_milker_id_fkey(id, full_name, role)
+      `)
+      .eq('id', id)
+      .is('deleted_at', null)
+      .single<MilkRecordDetail>();
 
-  return { data, error };
+    return { data, error };
+  } catch (error) {
+    console.error('[MilkService] getMilkRecordById exception:', error);
+    return { data: null, error };
+  }
 }
 
 /**
@@ -195,28 +200,40 @@ export async function deleteMilkRecord(id: string) {
  * const stats = await getMilkStats('cow-uuid', '2025-10-01', '2025-10-12');
  */
 export async function getMilkStats(
-  cowId: string, 
-  startDate?: string, 
+  cowId: string,
+  startDate?: string,
   endDate?: string
 ): Promise<MilkStats> {
-  let query = supabase
-    .from('milk_records')
-    .select('*')
-    .eq('cow_id', cowId)
-    .is('deleted_at', null);
+  const empty: MilkStats = {
+    total_records: 0,
+    total_yield: 0,
+    avg_yield: 0,
+    max_yield: 0,
+  };
 
-  if (startDate) query = query.gte('recorded_datetime', startDate);
-  if (endDate) query = query.lte('recorded_datetime', endDate);
+  let data: any[] | null = null;
+  let error: any = null;
 
-  const { data, error } = await query;
+  try {
+    let query = supabase
+      .from('milk_records')
+      .select('*')
+      .eq('cow_id', cowId)
+      .is('deleted_at', null);
+
+    if (startDate) query = query.gte('recorded_datetime', startDate);
+    if (endDate) query = query.lte('recorded_datetime', endDate);
+
+    const result = await query;
+    data = result.data;
+    error = result.error;
+  } catch (e) {
+    console.error('[MilkService] getMilkStats exception:', e);
+    return empty;
+  }
 
   if (error || !data || data.length === 0) {
-    return {
-      total_records: 0,
-      total_yield: 0,
-      avg_yield: 0,
-      max_yield: 0,
-    };
+    return empty;
   }
 
   // 计算统计数据
@@ -272,14 +289,24 @@ export async function getMilkTrend(cowId: string, days: number = 30): Promise<Mi
   const startDate = new Date();
   startDate.setDate(startDate.getDate() - days);
 
-  const { data, error } = await supabase
-    .from('milk_records')
-    .select('recorded_datetime, amount, fat_rate, protein_rate')
-    .eq('cow_id', cowId)
-    .is('deleted_at', null)
-    .gte('recorded_datetime', startDate.toISOString())
-    .lte('recorded_datetime', endDate.toISOString())
-    .order('recorded_datetime', { ascending: true });
+  let data: any[] | null = null;
+  let error: any = null;
+
+  try {
+    const result = await supabase
+      .from('milk_records')
+      .select('recorded_datetime, amount, fat_rate, protein_rate')
+      .eq('cow_id', cowId)
+      .is('deleted_at', null)
+      .gte('recorded_datetime', startDate.toISOString())
+      .lte('recorded_datetime', endDate.toISOString())
+      .order('recorded_datetime', { ascending: true });
+    data = result.data;
+    error = result.error;
+  } catch (e) {
+    console.error('[MilkService] getMilkTrend exception:', e);
+    return [];
+  }
 
   if (error || !data) {
     return [];
@@ -323,13 +350,18 @@ export async function getMilkTrend(cowId: string, days: number = 30): Promise<Mi
  * @returns Supabase 响应
  */
 export async function getRecentMilkRecords(cowId: string, limit: number = 10) {
-  const { data, error } = await supabase
-    .from('milk_records')
-    .select('*')
-    .eq('cow_id', cowId)
-    .is('deleted_at', null)
-    .order('recorded_datetime', { ascending: false })
-    .limit(limit);
+  try {
+    const { data, error } = await supabase
+      .from('milk_records')
+      .select('*')
+      .eq('cow_id', cowId)
+      .is('deleted_at', null)
+      .order('recorded_datetime', { ascending: false })
+      .limit(limit);
 
-  return { data, error };
+    return { data, error };
+  } catch (error) {
+    console.error('[MilkService] getRecentMilkRecords exception:', error);
+    return { data: null, error };
+  }
 }

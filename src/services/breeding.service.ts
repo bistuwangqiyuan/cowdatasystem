@@ -33,28 +33,38 @@ export async function createBreedingRecord(data: BreedingFormData) {
 }
 
 export async function getBreedingRecords(filters?: BreedingFilters) {
-  let query = supabase
-    .from('breeding_records')
-    .select('*')
-    .is('deleted_at', null)
-    .order('breeding_date', { ascending: false });
+  try {
+    let query = supabase
+      .from('breeding_records')
+      .select('*')
+      .is('deleted_at', null)
+      .order('breeding_date', { ascending: false });
 
-  if (filters?.cow_id) query = query.eq('cow_id', filters.cow_id);
-  if (filters?.status) query = query.eq('status', filters.status);
-  if (filters?.breeding_method) query = query.eq('breeding_method', filters.breeding_method);
-  if (filters?.start_date) query = query.gte('breeding_date', filters.start_date);
-  if (filters?.end_date) query = query.lte('breeding_date', filters.end_date);
+    if (filters?.cow_id) query = query.eq('cow_id', filters.cow_id);
+    if (filters?.status) query = query.eq('status', filters.status);
+    if (filters?.breeding_method) query = query.eq('breeding_method', filters.breeding_method);
+    if (filters?.start_date) query = query.gte('breeding_date', filters.start_date);
+    if (filters?.end_date) query = query.lte('breeding_date', filters.end_date);
 
-  return await query;
+    return await query;
+  } catch (error) {
+    console.error('[BreedingService] getBreedingRecords exception:', error);
+    return { data: null, error };
+  }
 }
 
 export async function getBreedingRecordById(id: string) {
-  return await supabase
-    .from('breeding_records')
-    .select('*')
-    .eq('id', id)
-    .is('deleted_at', null)
-    .single();
+  try {
+    return await supabase
+      .from('breeding_records')
+      .select('*')
+      .eq('id', id)
+      .is('deleted_at', null)
+      .single();
+  } catch (error) {
+    console.error('[BreedingService] getBreedingRecordById exception:', error);
+    return { data: null, error };
+  }
 }
 
 export async function updateBreedingRecord(id: string, data: Partial<BreedingFormData>) {

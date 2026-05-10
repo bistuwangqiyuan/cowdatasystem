@@ -67,44 +67,44 @@ export async function createHealthRecord(data: HealthRecordFormData) {
  * });
  */
 export async function getHealthRecords(filters?: HealthRecordFilters) {
-  let query = supabase
-    .from('health_records')
-    .select('*')
-    .is('deleted_at', null)
-    .order('check_datetime', { ascending: false });
+  try {
+    let query = supabase
+      .from('health_records')
+      .select('*')
+      .is('deleted_at', null)
+      .order('check_datetime', { ascending: false });
 
-  // 按奶牛ID过滤
-  if (filters?.cow_id) {
-    query = query.eq('cow_id', filters.cow_id);
+    if (filters?.cow_id) {
+      query = query.eq('cow_id', filters.cow_id);
+    }
+
+    if (filters?.start_date) {
+      query = query.gte('check_datetime', filters.start_date);
+    }
+    if (filters?.end_date) {
+      query = query.lte('check_datetime', filters.end_date);
+    }
+
+    if (filters?.examiner_id) {
+      query = query.eq('examiner_id', filters.examiner_id);
+    }
+
+    if (filters?.mental_state) {
+      query = query.eq('mental_state', filters.mental_state);
+    }
+
+    const { data, error } = await query;
+
+    if (filters?.abnormal_only && data) {
+      const abnormalRecords = data.filter(record => isAbnormalHealth(record));
+      return { data: abnormalRecords, error };
+    }
+
+    return { data, error };
+  } catch (error) {
+    console.error('[HealthService] getHealthRecords exception:', error);
+    return { data: null, error };
   }
-
-  // 按日期范围过滤
-  if (filters?.start_date) {
-    query = query.gte('check_datetime', filters.start_date);
-  }
-  if (filters?.end_date) {
-    query = query.lte('check_datetime', filters.end_date);
-  }
-
-  // 按检查人员过滤
-  if (filters?.examiner_id) {
-    query = query.eq('examiner_id', filters.examiner_id);
-  }
-
-  // 按精神状态过滤
-  if (filters?.mental_state) {
-    query = query.eq('mental_state', filters.mental_state);
-  }
-
-  const { data, error } = await query;
-
-  // 仅显示异常记录
-  if (filters?.abnormal_only && data) {
-    const abnormalRecords = data.filter(record => isAbnormalHealth(record));
-    return { data: abnormalRecords, error };
-  }
-
-  return { data, error };
 }
 
 /**
@@ -113,18 +113,23 @@ export async function getHealthRecords(filters?: HealthRecordFilters) {
  * @returns Supabase 响应
  */
 export async function getHealthRecordById(id: string) {
-  const { data, error } = await supabase
-    .from('health_records')
-    .select(`
-      *,
-      cow:cows!inner(id, cow_number, name, breed),
-      examiner:users!health_records_examiner_id_fkey(id, full_name, role)
-    `)
-    .eq('id', id)
-    .is('deleted_at', null)
-    .single<HealthRecordDetail>();
+  try {
+    const { data, error } = await supabase
+      .from('health_records')
+      .select(`
+        *,
+        cow:cows!inner(id, cow_number, name, breed),
+        examiner:users!health_records_examiner_id_fkey(id, full_name, role)
+      `)
+      .eq('id', id)
+      .is('deleted_at', null)
+      .single<HealthRecordDetail>();
 
-  return { data, error };
+    return { data, error };
+  } catch (error) {
+    console.error('[HealthService] getHealthRecordById exception:', error);
+    return { data: null, error };
+  }
 }
 
 /**
@@ -188,49 +193,54 @@ export async function deleteHealthRecord(id: string) {
  * const stats = await getHealthStats('cow-uuid', '2025-10-01', '2025-10-12');
  */
 export async function getHealthStats(
-  cowId: string, 
-  startDate?: string, 
+  cowId: string,
+  startDate?: string,
   endDate?: string
 ): Promise<HealthStats> {
-  let query = supabase
-    .from('health_records')
-    .select('*')
-    .eq('cow_id', cowId)
-    .is('deleted_at', null);
-
-  if (startDate) query = query.gte('check_datetime', startDate);
-  if (endDate) query = query.lte('check_datetime', endDate);
-
-  const { data, error } = await query;
-
-  if (error || !data) {
-    return {
-      total_records: 0,
-      abnormal_records: 0,
-      avg_temperature: 0,
-      max_temperature: 0,
-      min_temperature: 0,
-    };
-  }
-
-  // 计算统计数据
-  const temperatures = data.map(r => r.temperature);
-  const abnormalRecords = data.filter(r => isAbnormalHealth(r));
-
-  const stats: HealthStats = {
-    total_records: data.length,
-    abnormal_records: abnormalRecords.length,
-    avg_temperature: temperatures.reduce((sum, t) => sum + t, 0) / temperatures.length,
-    max_temperature: Math.max(...temperatures),
-    min_temperature: Math.min(...temperatures),
+  const empty: HealthStats = {
+    total_records: 0,
+    abnormal_records: 0,
+    avg_temperature: 0,
+    max_temperature: 0,
+    min_temperature: 0,
   };
 
-  // 最近一次检查日期
-  if (data.length > 0) {
-    stats.last_check_date = data[0].check_datetime;
-  }
+  try {
+    let query = supabase
+      .from('health_records')
+      .select('*')
+      .eq('cow_id', cowId)
+      .is('deleted_at', null);
 
-  return stats;
+    if (startDate) query = query.gte('check_datetime', startDate);
+    if (endDate) query = query.lte('check_datetime', endDate);
+
+    const { data, error } = await query;
+
+    if (error || !data || data.length === 0) {
+      return empty;
+    }
+
+    const temperatures = data.map(r => r.temperature);
+    const abnormalRecords = data.filter(r => isAbnormalHealth(r));
+
+    const stats: HealthStats = {
+      total_records: data.length,
+      abnormal_records: abnormalRecords.length,
+      avg_temperature: temperatures.reduce((sum, t) => sum + t, 0) / temperatures.length,
+      max_temperature: Math.max(...temperatures),
+      min_temperature: Math.min(...temperatures),
+    };
+
+    if (data.length > 0) {
+      stats.last_check_date = data[0].check_datetime;
+    }
+
+    return stats;
+  } catch (error) {
+    console.error('[HealthService] getHealthStats exception:', error);
+    return empty;
+  }
 }
 
 /**
@@ -240,13 +250,18 @@ export async function getHealthStats(
  * @returns Supabase 响应
  */
 export async function getRecentHealthRecords(cowId: string, limit: number = 7) {
-  const { data, error } = await supabase
-    .from('health_records')
-    .select('*')
-    .eq('cow_id', cowId)
-    .is('deleted_at', null)
-    .order('check_datetime', { ascending: false })
-    .limit(limit);
+  try {
+    const { data, error } = await supabase
+      .from('health_records')
+      .select('*')
+      .eq('cow_id', cowId)
+      .is('deleted_at', null)
+      .order('check_datetime', { ascending: false })
+      .limit(limit);
 
-  return { data, error };
+    return { data, error };
+  } catch (error) {
+    console.error('[HealthService] getRecentHealthRecords exception:', error);
+    return { data: null, error };
+  }
 }
