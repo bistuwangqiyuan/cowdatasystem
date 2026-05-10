@@ -32,10 +32,11 @@ test.describe('健康记录管理', () => {
     expect(hasTable || hasEmptyState).toBeTruthy();
     
     if (hasTable) {
-      // 检查表头
-      await expect(page.locator('th:has-text("检查时间")')).toBeVisible();
-      await expect(page.locator('th:has-text("体温")')).toBeVisible();
-      await expect(page.locator('th:has-text("状态")')).toBeVisible();
+      // 检查表头：表头里既有"精神状态"列又有"状态"列，所以 :has-text 是子串匹配会
+      // 同时命中两列 → 用 .first() 避开 strict mode 校验。
+      await expect(page.locator('th:has-text("检查时间")').first()).toBeVisible();
+      await expect(page.locator('th:has-text("体温")').first()).toBeVisible();
+      await expect(page.locator('th:has-text("状态")').first()).toBeVisible();
     }
   });
 
@@ -58,13 +59,14 @@ test.describe('健康记录管理', () => {
     const hasStats = await page.locator('text=总记录数').isVisible().catch(() => false);
     
     if (hasStats) {
-      // 检查统计项
-      await expect(page.locator('text=总记录数')).toBeVisible();
-      await expect(page.locator('text=异常记录')).toBeVisible();
-      await expect(page.locator('text=平均体温')).toBeVisible();
-      
-      // 检查数值不是NaN
-      const avgTemp = await page.locator('text=平均体温').locator('..').locator('.text-2xl').textContent();
+      // 检查统计项：表格筛选栏的"仅显示异常记录"复选框文案中也含"异常记录"
+      // 子串，所以宽松匹配会命中两处。用 .first() 收敛到第一个可见元素即可。
+      await expect(page.locator('text=总记录数').first()).toBeVisible();
+      await expect(page.locator('text=异常记录').first()).toBeVisible();
+      await expect(page.locator('text=平均体温').first()).toBeVisible();
+
+      // 检查数值不是 NaN
+      const avgTemp = await page.locator('text=平均体温').first().locator('..').locator('.text-2xl').textContent();
       expect(avgTemp).not.toContain('NaN');
     }
   });

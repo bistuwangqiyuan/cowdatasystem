@@ -121,17 +121,47 @@ export async function getHealthRecords(filters?: HealthRecordFilters) {
 
 export async function getHealthRecordById(id: string) {
   return safeQuery(async () => {
+    // 注意：JOIN 后所有 SELECT 列必须显式带 hr. 前缀，否则 id/created_by 等列名会
+    // 与 cows / users 冲突。
     const text = `
       SELECT
-        ${SELECT_COLS},
-        json_build_object(
-          'id', c.id, 'cow_number', c.cow_number, 'name', c.name, 'breed', c.breed
-        ) AS cow,
-        json_build_object(
-          'id', u.id, 'full_name', u.full_name, 'role', u.role
-        ) AS examiner
+        hr.id,
+        hr.cow_id,
+        to_char(hr.recorded_date::timestamp, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') AS check_datetime,
+        hr.temperature::float AS temperature,
+        CASE hr.mental_status
+          WHEN 'good' THEN 'normal'
+          WHEN 'fair' THEN 'depressed'
+          WHEN 'poor' THEN 'depressed'
+          ELSE 'normal'
+        END AS mental_state,
+        CASE hr.appetite
+          WHEN 'good' THEN 'good'
+          WHEN 'fair' THEN 'normal'
+          WHEN 'poor' THEN 'poor'
+          ELSE 'normal'
+        END AS appetite,
+        NULL::int  AS respiratory_rate,
+        NULL::int  AS heart_rate,
+        NULL::int  AS rumen_movement,
+        hr.fecal_condition,
+        hr.symptoms AS health_issues,
+        NULL::text AS treatment,
+        hr.created_by::text AS examiner_id,
+        NULL::text AS notes,
+        hr.created_at::text AS created_at,
+        hr.updated_at::text AS updated_at,
+        hr.created_by,
+        hr.updated_by,
+        hr.deleted_at::text AS deleted_at,
+        CASE WHEN c.id IS NULL THEN NULL ELSE
+          json_build_object('id', c.id, 'cow_number', c.cow_number, 'name', c.name, 'breed', c.breed)
+        END AS cow,
+        CASE WHEN u.id IS NULL THEN NULL ELSE
+          json_build_object('id', u.id, 'full_name', u.full_name, 'role', u.role)
+        END AS examiner
       FROM health_records hr
-      JOIN cows c ON c.id = hr.cow_id
+      LEFT JOIN cows  c ON c.id = hr.cow_id
       LEFT JOIN users u ON u.id = hr.created_by
       WHERE hr.id = $1::uuid AND hr.deleted_at IS NULL
       LIMIT 1
