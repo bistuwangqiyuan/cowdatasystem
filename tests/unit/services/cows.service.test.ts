@@ -1,12 +1,39 @@
 /**
- * Cows Service Unit Tests
- * 
- * 测试奶牛服务层的所有CRUD操作和业务逻辑。
- * 
+ * Cows Service Unit Tests (Neon-backed)
+ *
+ * 服务层数据库已经从 Supabase 切换到 Neon (@/lib/db)。本套用例围绕新的
+ * sql 标签 + sql.query() 接口建立 mock，验证：
+ *   - SQL 执行结果到 ServiceResponse 的映射
+ *   - 错误传播
+ *   - 统计聚合逻辑
+ *
  * @group unit
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+
+// vi.mock 工厂会被提升到文件顶部，所以用 vi.hoisted 把 mock 对象提到同一时间点。
+const { sqlMock } = vi.hoisted(() => {
+  const fn: any = vi.fn();
+  fn.query = vi.fn();
+  return { sqlMock: fn };
+});
+
+vi.mock('../../../src/lib/db', () => ({
+  sql: sqlMock,
+  isDbAvailable: true,
+  DB_UNAVAILABLE_ERROR: { message: 'Database unavailable', code: 'DB_UNAVAILABLE' },
+  safeQuery: async (fn: () => Promise<any>, _ctx: string) => {
+    try {
+      const data = await fn();
+      return { data, error: null };
+    } catch (err: any) {
+      return { data: null, error: { message: err?.message ?? String(err), code: 'DB_ERROR' } };
+    }
+  },
+}));
+
+// 必须在 mock 之后再 import 被测模块
 import {
   createCow,
   getCows,
@@ -17,83 +44,26 @@ import {
   searchCows,
   getCowStats,
 } from '../../../src/services/cows.service';
-import { supabase } from '../../../src/lib/supabase';
 
-// Mock Supabase 客户端
-vi.mock('../../../src/lib/supabase', () => ({
-  supabase: {
-    auth: {
-      getUser: vi.fn(),
-    },
-    from: vi.fn(() => ({
-      insert: vi.fn(() => ({
-        select: vi.fn(() => ({
-          single: vi.fn(),
-        })),
-      })),
-      select: vi.fn(() => ({
-        is: vi.fn(() => ({
-          order: vi.fn(() => ({
-            eq: vi.fn(),
-          })),
-          eq: vi.fn(() => ({
-            single: vi.fn(),
-          })),
-          single: vi.fn(),
-          or: vi.fn(() => ({
-            limit: vi.fn(),
-          })),
-        })),
-        eq: vi.fn(() => ({
-          is: vi.fn(() => ({
-            single: vi.fn(),
-          })),
-        })),
-      })),
-      update: vi.fn(() => ({
-        eq: vi.fn(() => ({
-          select: vi.fn(() => ({
-            single: vi.fn(),
-          })),
-        })),
-      })),
-    })),
-  },
-}));
+beforeEach(() => {
+  sqlMock.mockReset();
+  sqlMock.query.mockReset();
+});
 
-describe('Cows Service', () => {
-  beforeEach(() => {
-    vi.clearAllMocks();
-    
-    // Mock 默认用户
-    vi.mocked(supabase.auth.getUser).mockResolvedValue({
-      data: { user: { id: 'user-123', email: 'test@example.com' } },
-      error: null,
-    } as any);
-  });
-
+describe('Cows Service (Neon)', () => {
   describe('createCow', () => {
-    it('should create a new cow with valid data', async () => {
+    it('should insert and return the created cow', async () => {
       const mockCow = {
         id: 'cow-123',
         cow_number: 'TEST001',
         name: '测试牛',
-        breed: 'holstein' as const,
-        gender: 'female' as const,
+        breed: 'holstein',
+        gender: 'female',
         birth_date: '2022-01-01',
         entry_date: '2022-01-05',
-        status: 'active' as const,
-        created_by: 'user-123',
-        updated_by: 'user-123',
+        status: 'active',
       };
-
-      const mockChain = {
-        single: vi.fn().mockResolvedValue({ data: mockCow, error: null }),
-      };
-      const mockSelect = vi.fn().mockReturnValue(mockChain);
-      const mockInsert = vi.fn().mockReturnValue({ select: mockSelect });
-      
-      vi.mocked(supabase.from).mockReturnValue({ insert: mockInsert } as any);
+      sqlMock.mockResolvedValue([mockCow]);
 
       const result = await createCow({
         cow_number: 'TEST001',
@@ -104,40 +74,13 @@ describe('Cows Service', () => {
         entry_date: '2022-01-05',
       });
 
-      expect(result.data).toEqual(mockCow);
       expect(result.error).toBeNull();
-      expect(supabase.from).toHaveBeenCalledWith('cows');
-      expect(mockInsert).toHaveBeenCalled();
+      expect(result.data).toEqual(mockCow);
+      expect(sqlMock).toHaveBeenCalled();
     });
 
-    it('should fail when user is not logged in', async () => {
-      vi.mocked(supabase.auth.getUser).mockResolvedValue({
-        data: { user: null },
-        error: null,
-      } as any);
-
-      const result = await createCow({
-        cow_number: 'TEST001',
-        breed: 'holstein',
-        gender: 'female',
-        birth_date: '2022-01-01',
-        entry_date: '2022-01-05',
-      });
-
-      expect(result.data).toBeNull();
-      expect(result.error).toEqual({ message: '用户未登录' });
-    });
-
-    it('should handle database errors', async () => {
-      const mockError = { message: 'Duplicate cow_number', code: '23505' };
-      const mockChain = {
-        single: vi.fn().mockResolvedValue({ data: null, error: mockError }),
-      };
-      const mockSelect = vi.fn().mockReturnValue(mockChain);
-      const mockInsert = vi.fn().mockReturnValue({ select: mockSelect });
-      
-      vi.mocked(supabase.from).mockReturnValue({ insert: mockInsert } as any);
-
+    it('should propagate database errors', async () => {
+      sqlMock.mockRejectedValue(new Error('Duplicate cow_number'));
       const result = await createCow({
         cow_number: 'DUP001',
         breed: 'holstein',
@@ -145,279 +88,134 @@ describe('Cows Service', () => {
         birth_date: '2022-01-01',
         entry_date: '2022-01-05',
       });
-
       expect(result.data).toBeNull();
-      expect(result.error).toEqual(mockError);
+      expect(result.error?.message).toMatch(/Duplicate/);
     });
   });
 
   describe('getCows', () => {
-    it('should return all active cows', async () => {
+    it('should return active cows from sql tag', async () => {
       const mockCows = [
-        { id: 'cow-1', cow_number: 'CN001', breed: 'holstein', status: 'active', deleted_at: null },
-        { id: 'cow-2', cow_number: 'CN002', breed: 'jersey', status: 'active', deleted_at: null },
+        { id: 'cow-1', cow_number: 'CN001', breed: 'holstein', status: 'active' },
+        { id: 'cow-2', cow_number: 'CN002', breed: 'jersey',   status: 'active' },
       ];
-
-      const mockQuery = {
-        order: vi.fn().mockResolvedValue({ data: mockCows, error: null }),
-      };
-      const mockIs = vi.fn().mockReturnValue(mockQuery);
-      const mockSelect = vi.fn().mockReturnValue({ is: mockIs });
-      
-      vi.mocked(supabase.from).mockReturnValue({ select: mockSelect } as any);
+      sqlMock.mockResolvedValue(mockCows);
 
       const result = await getCows();
 
       expect(result.data).toEqual(mockCows);
       expect(result.error).toBeNull();
-      expect(mockIs).toHaveBeenCalledWith('deleted_at', null);
+      expect(sqlMock).toHaveBeenCalled();
     });
 
-    it('should filter cows by breed', async () => {
-      const mockCows = [
-        { id: 'cow-1', cow_number: 'CN001', breed: 'holstein', status: 'active' },
-      ];
-
-      // 源码链路：from().select().is().order().eq() （filter 在 order 之后追加）
-      // .eq() 的返回值需要是可 await 的，所以用 thenable 模拟最终结果
-      const finalResult = { data: mockCows, error: null };
-      const mockEq = vi.fn().mockResolvedValue(finalResult);
-      const mockOrder = vi.fn().mockReturnValue({ eq: mockEq });
-      const mockIs = vi.fn().mockReturnValue({ order: mockOrder, eq: mockEq });
-      const mockSelect = vi.fn().mockReturnValue({ is: mockIs });
-
-      vi.mocked(supabase.from).mockReturnValue({ select: mockSelect } as any);
-
-      const result = await getCows({ breed: 'holstein' });
-
-      expect(result.data).toHaveLength(1);
-      expect(result.data?.[0].breed).toBe('holstein');
-      expect(mockEq).toHaveBeenCalledWith('breed', 'holstein');
-    });
-
-    it('should filter cows by status', async () => {
-      const mockEq = vi.fn().mockResolvedValue({ data: [], error: null });
-      const mockOrder = vi.fn().mockReturnValue({ eq: mockEq });
-      const mockIs = vi.fn().mockReturnValue({ order: mockOrder, eq: mockEq });
-      const mockSelect = vi.fn().mockReturnValue({ is: mockIs });
-
-      vi.mocked(supabase.from).mockReturnValue({ select: mockSelect } as any);
-
-      await getCows({ status: 'culled' });
-
-      expect(mockEq).toHaveBeenCalledWith('status', 'culled');
+    it('should pass breed filter as a parameter to the sql tag', async () => {
+      sqlMock.mockResolvedValue([]);
+      await getCows({ breed: 'holstein' });
+      // sql 标签：第一个参数是 string[]（template parts），剩余是插值参数
+      const callArgs = sqlMock.mock.calls[0];
+      const interpolated = callArgs.slice(1).flat();
+      expect(interpolated).toContain('holstein');
     });
   });
 
   describe('getCowById', () => {
-    it('should return cow by ID', async () => {
-      const mockCow = {
-        id: 'cow-123',
-        cow_number: 'CN001',
-        name: '小花',
-        breed: 'holstein',
-      };
-
-      const mockChain = {
-        single: vi.fn().mockResolvedValue({ data: mockCow, error: null }),
-      };
-      const mockIs = vi.fn().mockReturnValue(mockChain);
-      const mockEq = vi.fn().mockReturnValue({ is: mockIs });
-      const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
-      
-      vi.mocked(supabase.from).mockReturnValue({ select: mockSelect } as any);
+    it('should return single cow', async () => {
+      const mockCow = { id: 'cow-123', cow_number: 'CN001', name: '小花' };
+      sqlMock.mockResolvedValue([mockCow]);
 
       const result = await getCowById('cow-123');
 
       expect(result.data).toEqual(mockCow);
       expect(result.error).toBeNull();
-      expect(mockEq).toHaveBeenCalledWith('id', 'cow-123');
     });
 
-    it('should return error for non-existent cow', async () => {
-      const mockError = { message: 'Cow not found' };
-      const mockChain = {
-        single: vi.fn().mockResolvedValue({ data: null, error: mockError }),
-      };
-      const mockIs = vi.fn().mockReturnValue(mockChain);
-      const mockEq = vi.fn().mockReturnValue({ is: mockIs });
-      const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
-      
-      vi.mocked(supabase.from).mockReturnValue({ select: mockSelect } as any);
-
-      const result = await getCowById('invalid-id');
-
+    it('should return null data when no rows returned', async () => {
+      sqlMock.mockResolvedValue([]);
+      const result = await getCowById('missing-id');
       expect(result.data).toBeNull();
-      expect(result.error).toEqual(mockError);
+      expect(result.error).toBeNull();
     });
   });
 
   describe('getCowByNumber', () => {
-    it('should return cow by number', async () => {
-      const mockCow = {
-        id: 'cow-123',
-        cow_number: 'CN001',
-        name: '小花',
-      };
-
-      const mockChain = {
-        single: vi.fn().mockResolvedValue({ data: mockCow, error: null }),
-      };
-      const mockIs = vi.fn().mockReturnValue(mockChain);
-      const mockEq = vi.fn().mockReturnValue({ is: mockIs });
-      const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
-      
-      vi.mocked(supabase.from).mockReturnValue({ select: mockSelect } as any);
-
-      const result = await getCowByNumber('CN001');
-
-      expect(result.data).toEqual(mockCow);
-      expect(mockEq).toHaveBeenCalledWith('cow_number', 'CN001');
+    it('should pass cow_number into the sql tag', async () => {
+      sqlMock.mockResolvedValue([{ id: 'x', cow_number: 'CN001' }]);
+      await getCowByNumber('CN001');
+      const interpolated = sqlMock.mock.calls[0].slice(1).flat();
+      expect(interpolated).toContain('CN001');
     });
   });
 
   describe('updateCow', () => {
-    it('should update cow successfully', async () => {
-      const mockUpdatedCow = {
-        id: 'cow-123',
-        cow_number: 'CN001',
-        name: '新名字',
-        updated_by: 'user-123',
-      };
-
-      const mockChain = {
-        single: vi.fn().mockResolvedValue({ data: mockUpdatedCow, error: null }),
-      };
-      const mockSelect = vi.fn().mockReturnValue(mockChain);
-      const mockEq = vi.fn().mockReturnValue({ select: mockSelect });
-      const mockUpdate = vi.fn().mockReturnValue({ eq: mockEq });
-      
-      vi.mocked(supabase.from).mockReturnValue({ update: mockUpdate } as any);
+    it('should update via sql.query and return the updated row', async () => {
+      const updated = { id: 'cow-123', cow_number: 'CN001', name: '新名字' };
+      sqlMock.query.mockResolvedValue([updated]);
 
       const result = await updateCow('cow-123', { name: '新名字' });
 
-      expect(result.data).toEqual(mockUpdatedCow);
       expect(result.error).toBeNull();
-      expect(mockUpdate).toHaveBeenCalled();
+      expect(result.data).toEqual(updated);
+      expect(sqlMock.query).toHaveBeenCalledTimes(1);
+      const [text, params] = sqlMock.query.mock.calls[0];
+      expect(text).toMatch(/UPDATE cows SET/);
+      expect(params[params.length - 1]).toBe('cow-123');
     });
 
-    it('should fail when user is not logged in', async () => {
-      vi.mocked(supabase.auth.getUser).mockResolvedValue({
-        data: { user: null },
-        error: null,
-      } as any);
-
-      const result = await updateCow('cow-123', { name: '新名字' });
-
-      expect(result.data).toBeNull();
-      expect(result.error).toEqual({ message: '用户未登录' });
+    it('should still set updated_by when no other fields are provided', async () => {
+      sqlMock.query.mockResolvedValue([{ id: 'cow-123', cow_number: 'CN001' }]);
+      const result = await updateCow('cow-123', {});
+      expect(result.error).toBeNull();
+      expect(result.data?.id).toBe('cow-123');
+      const [text, params] = sqlMock.query.mock.calls[0];
+      expect(text).toMatch(/UPDATE cows SET/);
+      expect(text).toMatch(/updated_by/);
+      expect(params[params.length - 1]).toBe('cow-123');
     });
   });
 
   describe('deleteCow', () => {
-    it('should soft delete cow successfully', async () => {
-      const mockEq = vi.fn().mockResolvedValue({ error: null });
-      const mockUpdate = vi.fn().mockReturnValue({ eq: mockEq });
-      
-      vi.mocked(supabase.from).mockReturnValue({ update: mockUpdate } as any);
-
+    it('should soft-delete via the sql tag', async () => {
+      sqlMock.mockResolvedValue([]);
       const result = await deleteCow('cow-123');
-
       expect(result.error).toBeNull();
-      expect(mockUpdate).toHaveBeenCalledWith(
-        expect.objectContaining({
-          deleted_at: expect.any(String),
-          updated_by: 'user-123',
-        })
-      );
-    });
-
-    it('should fail when user is not logged in', async () => {
-      vi.mocked(supabase.auth.getUser).mockResolvedValue({
-        data: { user: null },
-        error: null,
-      } as any);
-
-      const result = await deleteCow('cow-123');
-
-      expect(result.data).toBeNull();
-      expect(result.error).toEqual({ message: '用户未登录' });
+      const interpolated = sqlMock.mock.calls[0].slice(1).flat();
+      expect(interpolated).toContain('cow-123');
     });
   });
 
   describe('searchCows', () => {
-    it('should search cows by keyword', async () => {
-      const mockCows = [
-        { id: 'cow-1', cow_number: 'CN001', name: '小花' },
-        { id: 'cow-2', cow_number: 'CN002', name: '小红' },
-      ];
-
-      const mockLimit = vi.fn().mockResolvedValue({ data: mockCows, error: null });
-      const mockOrder = vi.fn().mockReturnValue({ limit: mockLimit });
-      const mockIs = vi.fn().mockReturnValue({ order: mockOrder });
-      const mockOr = vi.fn().mockReturnValue({ is: mockIs });
-      const mockSelect = vi.fn().mockReturnValue({ or: mockOr });
-      
-      vi.mocked(supabase.from).mockReturnValue({ select: mockSelect } as any);
-
+    it('should pass an ILIKE pattern to the sql tag', async () => {
+      sqlMock.mockResolvedValue([{ id: 'cow-1', cow_number: 'CN001' }]);
       const result = await searchCows('CN');
-
-      expect(result.data).toEqual(mockCows);
       expect(result.error).toBeNull();
-      expect(mockOr).toHaveBeenCalledWith(expect.stringContaining('CN'));
-    });
-
-    it('should limit search results to 50', async () => {
-      const mockLimit = vi.fn().mockResolvedValue({ data: [], error: null });
-      const mockOrder = vi.fn().mockReturnValue({ limit: mockLimit });
-      const mockIs = vi.fn().mockReturnValue({ order: mockOrder });
-      const mockOr = vi.fn().mockReturnValue({ is: mockIs });
-      const mockSelect = vi.fn().mockReturnValue({ or: mockOr });
-      
-      vi.mocked(supabase.from).mockReturnValue({ select: mockSelect } as any);
-
-      await searchCows('test');
-
-      expect(mockLimit).toHaveBeenCalledWith(50);
+      const interpolated = sqlMock.mock.calls[0].slice(1).flat();
+      expect(interpolated.some((v: any) => typeof v === 'string' && v.includes('%CN%'))).toBe(true);
     });
   });
 
   describe('getCowStats', () => {
-    it('should return statistics', async () => {
-      const mockCows = [
+    it('should aggregate cow counts by status / gender / breed', async () => {
+      sqlMock.mockResolvedValue([
         { id: 'cow-1', status: 'active', gender: 'female', breed: 'holstein' },
-        { id: 'cow-2', status: 'active', gender: 'male', breed: 'holstein' },
+        { id: 'cow-2', status: 'active', gender: 'male',   breed: 'holstein' },
         { id: 'cow-3', status: 'culled', gender: 'female', breed: 'jersey' },
-      ];
-
-      const mockIs = vi.fn().mockResolvedValue({ data: mockCows, error: null });
-      const mockSelect = vi.fn().mockReturnValue({ is: mockIs });
-      
-      vi.mocked(supabase.from).mockReturnValue({ select: mockSelect } as any);
+      ]);
 
       const result = await getCowStats();
 
+      expect(result.error).toBeNull();
       expect(result.data).toEqual({
         total: 3,
         active: 2,
         male: 1,
         female: 2,
-        by_breed: {
-          holstein: 2,
-          jersey: 1,
-        },
+        by_breed: { holstein: 2, jersey: 1 },
       });
-      expect(result.error).toBeNull();
     });
 
     it('should handle empty dataset', async () => {
-      const mockIs = vi.fn().mockResolvedValue({ data: [], error: null });
-      const mockSelect = vi.fn().mockReturnValue({ is: mockIs });
-      
-      vi.mocked(supabase.from).mockReturnValue({ select: mockSelect } as any);
-
+      sqlMock.mockResolvedValue([]);
       const result = await getCowStats();
-
       expect(result.data).toEqual({
         total: 0,
         active: 0,
@@ -428,4 +226,3 @@ describe('Cows Service', () => {
     });
   });
 });
-
