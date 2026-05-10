@@ -291,14 +291,68 @@ npx playwright test tests/e2e/08-production.spec.ts -g "NaN" --config=playwright
 
 ### ⚠️ 仍需人工跟进（不在本次 PR 范围）
 
-- bbtu.asia 当前数据为空（图表、列表全部展示"暂无…"）。根因是 Supabase 项目本身已不存在，
-  现在桩客户端只是把这个事实安全地呈现出来。如要恢复真实数据：
-  1. 在 Supabase 重新创建项目并迁入 schema（`supabase/migrations/*.sql`）；
-  2. 在 Netlify Site → Environment 更新 `PUBLIC_SUPABASE_URL` / `PUBLIC_SUPABASE_ANON_KEY`；
-  3. 触发一次重新部署，确认 `console.warn('[Supabase] Missing environment variables...')`
-     不再出现，且页面读出真实记录。
 - 仓库目前 `.gitignore` 排除 `pnpm-lock.yaml`，每次 Netlify 构建都会重新解析依赖，存在再次发生
   类似回归的风险，建议后续单独评审是否纳入版本控制。
 - 本轮只跑了 Chromium。如需 Firefox/WebKit/移动设备覆盖，去掉 `--project=chromium` 即可
   （`playwright.config.prod.ts` 已配置好 5 个项目）。
+
+---
+
+## 📦 后续：迁移到 Netlify 内置 Neon（2026-05-10 二次提交）
+
+### 触发原因
+
+上一节遗留项 #1 是 Supabase 项目已不可恢复，bbtu.asia 只能渲染空状态。本轮把数据层
+迁到了 **Netlify-managed Neon Postgres**（环境变量 `NETLIFY_DATABASE_URL` /
+`NETLIFY_DATABASE_URL_UNPOOLED` 由 Netlify 集成自动注入），让生产环境真正显示业务数据。
+
+### 关键改动（commits `c127ea9` + `c32ab1f`）
+
+1. **新增 Neon 数据访问层** `src/lib/db.ts`
+   - 通过 `@neondatabase/serverless` 的 `neon()` 创建 sql 标签函数；
+   - 环境变量缺失或驱动构造抛错时回落到一个 stub（所有查询返回 `[]`），以保留 SSR 韧性；
+   - 暴露 `safeQuery(fn, ctx)` 把异常打包进 `{data, error}`，与既有 ServiceResponse 形态对齐。
+2. **Schema + 演示数据**（提交到仓库供回放）
+   - `db/neon/001_init.sql`：原 `supabase/migrations/001_initial_schema.sql` 的"去 Supabase 化"
+     版本——去掉所有对 `auth.users(id)` 的引用、`auth.uid()` 调用、RLS、health_alert 触发器；
+     增加 `IF NOT EXISTS` / `DO ... EXCEPTION duplicate_object` 让脚本可重复执行。
+   - `db/neon/002_seed.sql`：6 头牛 + 28 条健康 + 84 条产奶 + 4 条繁殖 + 3 个配方 + 5 条投喂，
+     全部带显式 enum cast，避免 PL/pgSQL 严格类型检查失败。
+   - `scripts/neon-{probe,migrate,counts}.mjs`：本地连/迁/计数小工具。
+3. **服务层全量重写**（保持原有 `{data, error}` 返回形态）
+   - `services/cows.service.ts`：raw SQL，filters 走插值参数。
+   - `services/health.service.ts`：DB ↔ type 字段映射 — `recorded_date → check_datetime`、
+     `mental_status → mental_state` (good→normal、fair/poor→depressed)、`appetite` (fair→normal)、
+     `created_by → examiner_id`、`symptoms → health_issues`，缺失的 respiratory/heart/rumen 等
+     一律返回 `null`。
+   - `services/milk.service.ts`：JOIN cows 后用 `json_build_object` 把 `cow.cow_number` 注入。
+   - `services/breeding.service.ts`：`dam_id → cow_id`、`sire_id → bull_id`、breeding_method 与
+     pregnancy_result 双向枚举映射、`status` 兜底为 `'planned'`。
+   - `services/feed.service.ts`：`cattle_group → target_group`、`unit_cost → total_cost_per_kg`、
+     `id 前 8 位 → formula_code`、`amount → quantity_kg`。
+   - 所有 SELECT 中的 timestamp/date 列都强制 `to_char()` 或 `::text`，避免 Neon 驱动返回的
+     `Date` 对象在页面 `.split('T')` 处崩。
+4. **`src/lib/supabase.ts` 退化为纯 stub**
+   - 不再实例化 `@supabase/supabase-js` 客户端；保留 `auth.getUser/Session/onAuthStateChange/
+     signOut` 等 API surface，全部返回未登录态/无订阅，让仍 import 它的 Layout/Header/realtime
+     代码不抛异常。`signIn`/`signUp` 直接返回 `code: SUPABASE_REMOVED` 错误。
+5. **测试改造**
+   - `tests/unit/services/cows.service.test.ts`：换成针对 `@/lib/db` 的 mock（`vi.hoisted` +
+     `vi.mock`），覆盖 sql 标签调用、sql.query() 调用、聚合统计、错误传播——13 用例全绿。
+   - `tests/e2e/04-health-records.spec.ts`：production DB 现在有数据后两个原本无意义的 strict-mode
+     冲突浮现（`th:has-text("状态")` 同时命中"精神状态"列、`text=异常记录` 命中表头与筛选复选框
+     文案），按既定的"测试适配真实数据"原则给定位器加 `.first()`。
+
+### 验证结果
+
+| 项目 | 数值 |
+|------|------|
+| 本地 `pnpm build` | ✅ 通过 |
+| 本地 `astro dev` SSR (`/`, `/cows`, `/health`, `/milk`, `/breeding`, `/feed`, `/analytics`) | 7/7 = 200 |
+| `pnpm vitest run` | **68 / 68 通过** |
+| `pnpm exec playwright test --config=playwright.config.prod.ts --project=chromium` (BASE_URL=https://bbtu.asia) | **75 / 75 通过 (1.5m)** |
+| 生产 SSR smoke (`https://bbtu.asia/*`) | 7/7 = 200 |
+
+bbtu.asia 数据分析页现在直接显示来自 Neon 的真实数字（奶牛总数 6 / 总产奶量 1674 L /
+平均 19.9 L/次 等），与 stub 时代的"暂无数据"形成鲜明对比。
 
