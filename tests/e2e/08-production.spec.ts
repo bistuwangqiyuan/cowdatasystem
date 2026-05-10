@@ -76,8 +76,8 @@ test.describe('生产环境 - 繁殖管理页面', () => {
     // 检查页面标题 - 使用更具体的选择器
     await expect(page.locator('h1').last()).toContainText('繁殖', { timeout: 10000 });
     
-    // 检查添加按钮
-    await expect(page.locator('a[href="/breeding/new"]')).toBeVisible();
+    // 检查添加按钮（空状态下还会出现"点击添加第一条记录"链接，取第一个）
+    await expect(page.locator('a[href="/breeding/new"]').first()).toBeVisible();
     
     // 检查页面内容
     await page.waitForTimeout(PROD_WAIT);

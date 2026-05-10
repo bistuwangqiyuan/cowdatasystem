@@ -178,29 +178,29 @@ describe('Cows Service', () => {
         { id: 'cow-1', cow_number: 'CN001', breed: 'holstein', status: 'active' },
       ];
 
-      const mockQuery = {
-        order: vi.fn().mockResolvedValue({ data: mockCows, error: null }),
-      };
-      const mockEq = vi.fn().mockReturnValue(mockQuery);
-      const mockIs = vi.fn().mockReturnValue({ eq: mockEq });
+      // 源码链路：from().select().is().order().eq() （filter 在 order 之后追加）
+      // .eq() 的返回值需要是可 await 的，所以用 thenable 模拟最终结果
+      const finalResult = { data: mockCows, error: null };
+      const mockEq = vi.fn().mockResolvedValue(finalResult);
+      const mockOrder = vi.fn().mockReturnValue({ eq: mockEq });
+      const mockIs = vi.fn().mockReturnValue({ order: mockOrder, eq: mockEq });
       const mockSelect = vi.fn().mockReturnValue({ is: mockIs });
-      
+
       vi.mocked(supabase.from).mockReturnValue({ select: mockSelect } as any);
 
       const result = await getCows({ breed: 'holstein' });
 
       expect(result.data).toHaveLength(1);
       expect(result.data?.[0].breed).toBe('holstein');
+      expect(mockEq).toHaveBeenCalledWith('breed', 'holstein');
     });
 
     it('should filter cows by status', async () => {
-      const mockQuery = {
-        order: vi.fn().mockResolvedValue({ data: [], error: null }),
-      };
-      const mockEq = vi.fn().mockReturnValue(mockQuery);
-      const mockIs = vi.fn().mockReturnValue({ eq: mockEq });
+      const mockEq = vi.fn().mockResolvedValue({ data: [], error: null });
+      const mockOrder = vi.fn().mockReturnValue({ eq: mockEq });
+      const mockIs = vi.fn().mockReturnValue({ order: mockOrder, eq: mockEq });
       const mockSelect = vi.fn().mockReturnValue({ is: mockIs });
-      
+
       vi.mocked(supabase.from).mockReturnValue({ select: mockSelect } as any);
 
       await getCows({ status: 'culled' });

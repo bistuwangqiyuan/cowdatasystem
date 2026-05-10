@@ -146,7 +146,7 @@ describe('Auth Functions', () => {
       expect(mockEq).toHaveBeenCalledWith('id', 'user-123');
     });
 
-    it('should return undefined for non-existent user', async () => {
+    it('should return null for non-existent user', async () => {
       const mockChain = {
         single: vi.fn().mockResolvedValue({ data: null, error: null }),
       };
@@ -157,7 +157,8 @@ describe('Auth Functions', () => {
 
       const role = await getUserRole('invalid-user-id');
 
-      expect(role).toBeUndefined();
+      // 源码签名是 Promise<string | null>，data 为 null 时返回 null
+      expect(role).toBeNull();
     });
 
     it('should handle database errors', async () => {
@@ -172,7 +173,8 @@ describe('Auth Functions', () => {
 
       const role = await getUserRole('user-123');
 
-      expect(role).toBeUndefined();
+      // 错误分支同样返回 null
+      expect(role).toBeNull();
     });
   });
 });

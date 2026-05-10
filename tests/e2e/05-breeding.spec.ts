@@ -11,11 +11,11 @@ test.describe('繁殖管理', () => {
   });
 
   test('页面基本元素加载', async ({ page }) => {
-    // 检查页面标题
-    await expect(page.locator('h1')).toContainText('繁殖');
+    // 页面 h1 与 header logo 区分
+    await expect(page.locator('main h1').first()).toContainText('繁殖');
     
-    // 检查添加按钮
-    const addButton = page.locator('a[href="/breeding/new"]');
+    // 添加按钮：列表页可能有顶部按钮和空状态下的"点击添加第一条记录"
+    const addButton = page.locator('a[href="/breeding/new"]').first();
     await expect(addButton).toBeVisible();
   });
 
@@ -35,14 +35,14 @@ test.describe('繁殖管理', () => {
   });
 
   test('导航到创建繁殖记录页面', async ({ page }) => {
-    await page.locator('a[href="/breeding/new"]').click();
+    await page.locator('a[href="/breeding/new"]').first().click();
     
     // 检查URL
     await expect(page).toHaveURL('/breeding/new');
     
     // 检查表单元素
     await page.waitForSelector('form', { timeout: 5000 });
-    const form = page.locator('form');
+    const form = page.locator('form').first();
     await expect(form).toBeVisible();
   });
 
@@ -76,7 +76,7 @@ test.describe('繁殖管理', () => {
     await page.setViewportSize({ width: 768, height: 1024 });
     await page.reload();
     
-    await expect(page.locator('h1')).toBeVisible();
+    await expect(page.locator('main h1').first()).toBeVisible();
   });
 });
 
@@ -100,7 +100,7 @@ test.describe('繁殖记录表单', () => {
     await page.goto('/breeding/new');
     
     await page.waitForSelector('form');
-    const submitButton = page.locator('button[type="submit"]');
+    const submitButton = page.locator('button[type="submit"]').first();
     await expect(submitButton).toBeVisible();
   });
 });

@@ -19,7 +19,7 @@ export default defineConfig({
     
     // 覆盖率配置
     coverage: {
-      provider: 'c8',
+      provider: 'v8',
       reporter: ['text', 'json', 'html'],
       
       // 覆盖率阈值

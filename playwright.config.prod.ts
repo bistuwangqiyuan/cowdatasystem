@@ -24,8 +24,8 @@ export default defineConfig({
   /* 测试超时 - 生产环境可能需要更长时间 */
   timeout: 60000,
   
-  /* 最大失败次数 */
-  maxFailures: 5,
+  /* 最大失败次数 (0 = 不限制，跑完全部用例以便统一汇总) */
+  maxFailures: 0,
   
   /* 并行运行测试 */
   fullyParallel: true,

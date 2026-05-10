@@ -37,6 +37,12 @@ Thumbs.db
 coverage/
 .nyc_output/
 
+# Playwright artifacts
+test-results/
+playwright-report/
+playwright-report-prod/
+playwright-baseline-*.log
+
 # Supabase local
 .supabase/
 supabase/.branches/

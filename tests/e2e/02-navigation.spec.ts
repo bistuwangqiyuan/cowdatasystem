@@ -48,8 +48,8 @@ test.describe('导航流程测试', () => {
   test('帮助页面的快速链接应该正常工作', async ({ page }) => {
     await page.goto('/help');
     
-    // 确认页面加载
-    await expect(page.locator('h1')).toContainText(/帮助/);
+    // 确认页面加载（页面内 h1 与 header 中的 logo h1 区分）
+    await expect(page.locator('main h1').first()).toContainText(/帮助/);
     
     // 检查"返回首页"链接
     const homeLink = page.locator('a[href="/"]').last();

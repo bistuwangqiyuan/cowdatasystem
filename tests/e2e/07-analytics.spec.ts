@@ -11,8 +11,8 @@ test.describe('数据分析页面', () => {
   });
 
   test('页面基本元素加载', async ({ page }) => {
-    // 检查页面标题
-    await expect(page.locator('h1')).toContainText('数据分析');
+    // 页面 h1 与 header logo 区分
+    await expect(page.locator('main h1').first()).toContainText('数据分析');
     
     // 检查页面描述
     await expect(page.locator('p').first()).toBeVisible();
@@ -69,25 +69,27 @@ test.describe('数据分析页面', () => {
   test('健康监测统计显示', async ({ page }) => {
     await page.waitForTimeout(1000);
     
-    // 查找健康记录卡片
-    const healthCard = page.locator('text=健康记录').locator('..');
+    // 健康记录卡片：仅取核心指标卡片区域（gradient 卡片）
+    const healthCard = page.locator('.bg-gradient-to-br').filter({ hasText: '健康记录' }).first();
     await expect(healthCard).toBeVisible();
     
     // 检查异常率
-    const abnormalRateText = await healthCard.locator('text=异常率').textContent();
-    expect(abnormalRateText).not.toContain('NaN');
+    const cardText = await healthCard.textContent();
+    expect(cardText).toContain('异常率');
+    expect(cardText).not.toContain('NaN');
   });
 
   test('繁殖统计显示', async ({ page }) => {
     await page.waitForTimeout(1000);
     
-    // 查找繁殖记录卡片
-    const breedingCard = page.locator('text=繁殖记录').locator('..');
+    // 繁殖记录卡片：仅取核心指标卡片区域（gradient 卡片）
+    const breedingCard = page.locator('.bg-gradient-to-br').filter({ hasText: '繁殖记录' }).first();
     await expect(breedingCard).toBeVisible();
     
     // 检查成功率
-    const successRateText = await breedingCard.locator('text=成功率').textContent();
-    expect(successRateText).not.toContain('NaN');
+    const cardText = await breedingCard.textContent();
+    expect(cardText).toContain('成功率');
+    expect(cardText).not.toContain('NaN');
   });
 
   test('产奶趋势图表显示', async ({ page }) => {
@@ -146,7 +148,8 @@ test.describe('数据分析页面', () => {
     ];
     
     for (const card of navCards) {
-      const link = page.locator(`a[href="${card.href}"]`).filter({ hasText: card.text });
+      // 收紧选择器：限定 main 内带 shadow 的卡片，避免命中导航栏/页脚同名链接
+      const link = page.locator(`main a.shadow[href="${card.href}"]`).first();
       await expect(link).toBeVisible();
       
       // 检查数量显示不是NaN
@@ -158,8 +161,8 @@ test.describe('数据分析页面', () => {
   test('快速导航链接可点击', async ({ page }) => {
     await page.waitForTimeout(1000);
     
-    // 点击奶牛档案卡片
-    const cowsLink = page.locator('a[href="/cows"]').filter({ hasText: '奶牛档案' });
+    // 点击 main 内的奶牛档案快速导航卡片（避免与导航栏中同名链接冲突）
+    const cowsLink = page.locator('main a.shadow[href="/cows"]').first();
     await cowsLink.click();
     
     // 应该跳转到奶牛列表页
@@ -180,7 +183,7 @@ test.describe('数据分析页面', () => {
     await page.reload();
     
     // 页面应该正常显示
-    await expect(page.locator('h1')).toBeVisible();
+    await expect(page.locator('main h1').first()).toBeVisible();
   });
 
   test('响应式设计 - 手机', async ({ page }) => {
@@ -188,7 +191,7 @@ test.describe('数据分析页面', () => {
     await page.reload();
     
     // 核心指标应该是单列布局
-    await expect(page.locator('h1')).toBeVisible();
+    await expect(page.locator('main h1').first()).toBeVisible();
   });
 
   test('页面无JavaScript错误', async ({ page }) => {

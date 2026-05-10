@@ -11,8 +11,8 @@ test.describe('饲料管理', () => {
   });
 
   test('页面基本元素加载', async ({ page }) => {
-    // 检查页面标题
-    const heading = page.locator('h1');
+    // 页面 h1 与 header logo 区分
+    const heading = page.locator('main h1').first();
     await expect(heading).toBeVisible();
     await expect(heading).toContainText('饲料');
   });
@@ -29,12 +29,12 @@ test.describe('饲料管理', () => {
     // 桌面视图
     await page.setViewportSize({ width: 1280, height: 720 });
     await page.reload();
-    await expect(page.locator('h1')).toBeVisible();
+    await expect(page.locator('main h1').first()).toBeVisible();
     
     // 移动视图
     await page.setViewportSize({ width: 375, height: 667 });
     await page.reload();
-    await expect(page.locator('h1')).toBeVisible();
+    await expect(page.locator('main h1').first()).toBeVisible();
   });
 
   test('页面无JavaScript错误', async ({ page }) => {

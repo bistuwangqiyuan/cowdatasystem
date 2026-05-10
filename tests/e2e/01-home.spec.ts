@@ -16,8 +16,8 @@ test.describe('首页测试', () => {
     // 检查页面标题
     await expect(page).toHaveTitle(/奶牛数据管理系统/);
     
-    // 检查主要标题
-    const heading = page.locator('h1');
+    // 主要标题：页面 main 内有自己的 <h1>，与 header 中的 "奶牛管理系统" 区分
+    const heading = page.locator('main h1').first();
     await expect(heading).toBeVisible();
   });
 

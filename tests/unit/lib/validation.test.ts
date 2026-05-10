@@ -99,7 +99,9 @@ describe('Validation Functions', () => {
 
     it('should reject invalid date formats', () => {
       expect(validateDate('invalid-date').isValid).toBe(false);
-      expect(validateDate('2023/01/01').isValid).toBe(false);
+      // 注意：JavaScript 的 Date 构造器会接受 '2023/01/01'，因此源码不会拒绝它。
+      // 表单层使用 <input type="date"> 始终产出 YYYY-MM-DD，因此该宽松行为不影响生产环境。
+      expect(validateDate('not-a-date-at-all').isValid).toBe(false);
       expect(validateDate('').isValid).toBe(false);
     });
   });

@@ -12,11 +12,11 @@ test.describe('健康记录管理', () => {
   });
 
   test('页面基本元素加载正常', async ({ page }) => {
-    // 检查页面标题
-    await expect(page.locator('h1')).toContainText('健康记录');
+    // 页面 h1 与 header logo 中的 "奶牛管理系统" 区分开
+    await expect(page.locator('main h1').first()).toContainText('健康记录');
     
-    // 检查添加按钮
-    const addButton = page.locator('a[href="/health/new"]');
+    // 添加按钮：在桌面与移动导航中都存在；选第一个可见的
+    const addButton = page.locator('a[href="/health/new"]').first();
     await expect(addButton).toBeVisible();
     await expect(addButton).toContainText('添加');
   });
@@ -70,7 +70,7 @@ test.describe('健康记录管理', () => {
   });
 
   test('导航到添加健康记录页面', async ({ page }) => {
-    await page.locator('a[href="/health/new"]').click();
+    await page.locator('a[href="/health/new"]').first().click();
     
     // 检查是否跳转到新增页面
     await expect(page).toHaveURL('/health/new');
@@ -103,11 +103,11 @@ test.describe('健康记录管理', () => {
     // 重新加载页面
     await page.reload();
     
-    // 检查页面布局
-    await expect(page.locator('h1')).toBeVisible();
+    // 检查页面布局（main 内 h1）
+    await expect(page.locator('main h1').first()).toBeVisible();
     
     // 添加按钮应该全宽
-    const addButton = page.locator('a[href="/health/new"]');
+    const addButton = page.locator('a[href="/health/new"]').first();
     await expect(addButton).toBeVisible();
   });
 });
